@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Usuario · RefaccionesMX</title><link rel="stylesheet" href="css/styles.css"></head>
+<body data-page="usuarios" data-title="Usuario (alta / edición)">
+<p><a href="usuarios.html">← Cancelar</a></p>
+<form class="card" data-demo="usuarios.html"><div class="form-grid">
+ <div class="field"><label for="p">Persona *</label><select id="p" required><option>Ana Torres</option><option>Luis Ramos</option><option>María Pérez</option></select></div>
+ <div class="field"><label for="c">Correo *</label><input id="c" type="email" required></div>
+ <div class="field"><label for="pw">Contraseña * (mín. 8 caracteres)</label><input id="pw" type="password" minlength="8" required></div>
+ <div class="field"><label for="r">Rol *</label><select id="r" required><option>Administrador</option><option>Supervisor</option><option>Operativo</option></select></div>
+ <div class="field"><label for="e">Estado</label><select id="e"><option>Activo</option><option>Inactivo</option></select></div></div>
+ <button class="btn">Guardar</button> <a class="btn sec" href="usuarios.html">Cancelar</a></form>
+<script src="js/app.js"></script></body></html>

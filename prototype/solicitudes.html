@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Solicitudes · RefaccionesMX</title><link rel="stylesheet" href="css/styles.css"></head>
+<body data-page="solicitudes" data-title="Solicitudes de activos">
+<div class="card">
+ <div class="toolbar"><select aria-label="Estado"><option>Pendientes</option><option>Aprobadas</option><option>Rechazadas</option><option>Todas</option></select>
+ <button class="btn" onclick="document.getElementById('nueva').hidden=!document.getElementById('nueva').hidden">+ Nueva solicitud</button></div>
+ <form id="nueva" hidden data-demo="solicitudes.html" class="card" style="background:#f8fafc">
+  <div class="form-grid"><div class="field"><label for="a">Activo</label><select id="a"><option>Estación de calor</option><option>Microscopio</option><option>Kit destornilladores</option></select></div>
+  <div class="field"><label for="m">Motivo</label><input id="m"></div></div><button class="btn">Enviar solicitud</button></form>
+ <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Solicitante</th><th>Activo</th><th>Motivo</th><th>Estado</th><th data-roles="admin,supervisor">Acción</th></tr></thead><tbody>
+  <tr><td>03/11/2026</td><td>Luis Ramos</td><td>Estación de calor</td><td>Reparación de placa</td><td><span class="badge b-warn">Pendiente</span></td><td data-roles="admin,supervisor"><button class="btn ok sm">Aprobar</button> <button class="btn bad sm">Rechazar</button></td></tr>
+  <tr><td>02/11/2026</td><td>Ana Torres</td><td>Microscopio</td><td>Micro-soldadura</td><td><span class="badge b-ok">Aprobada</span></td><td data-roles="admin,supervisor">—</td></tr>
+  <tr><td>30/10/2026</td><td>Pedro Ruiz</td><td>Kit destornilladores</td><td>Inventario</td><td><span class="badge b-bad">Rechazada</span></td><td data-roles="admin,supervisor">—</td></tr>
+ </tbody></table></div>
+ <p class="proto-note">Al rechazar, se pedirá el motivo. Al aprobar se crea la asignación automáticamente.</p>
+</div>
+<script src="js/app.js"></script></body></html>

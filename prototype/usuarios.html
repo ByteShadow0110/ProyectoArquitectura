@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Usuarios y roles · RefaccionesMX</title><link rel="stylesheet" href="css/styles.css"></head>
+<body data-page="usuarios" data-title="Usuarios y roles">
+<div class="card">
+ <div class="toolbar"><input class="grow" data-filter="#t" placeholder="🔍 Buscar usuario…" aria-label="Buscar"><a class="btn" href="usuario-form.html">+ Nuevo usuario</a></div>
+ <div class="table-wrap"><table id="t"><thead><tr><th>Correo</th><th>Persona</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>
+  <tr><td>admin@tienda.com</td><td>Carlos Méndez</td><td><span class="badge b-info">Administrador</span></td><td><span class="badge b-ok">Activo</span></td><td><a href="usuario-form.html">Editar</a></td></tr>
+  <tr><td>ana.torres@tienda.com</td><td>Ana Torres</td><td><span class="badge b-warn">Supervisor</span></td><td><span class="badge b-ok">Activo</span></td><td><a href="usuario-form.html">Editar</a></td></tr>
+  <tr><td>luis.ramos@tienda.com</td><td>Luis Ramos</td><td><span class="badge b-mute">Operativo</span></td><td><span class="badge b-ok">Activo</span></td><td><a href="usuario-form.html">Editar</a></td></tr>
+ </tbody></table></div></div>
+<div class="card"><h2>Permisos por rol</h2><div class="table-wrap"><table>
+ <tr><th>Función</th><th>Admin</th><th>Supervisor</th><th>Operativo</th></tr>
+ <tr><td>Usuarios y roles</td><td>✔</td><td>✘</td><td>✘</td></tr>
+ <tr><td>Personas y activos (alta/edición)</td><td>✔</td><td>✔</td><td>✘</td></tr>
+ <tr><td>Consultar</td><td>✔</td><td>✔</td><td>✔</td></tr>
+ <tr><td>Aprobar solicitudes / reportes</td><td>✔</td><td>✔</td><td>✘</td></tr></table></div></div>
+<script src="js/app.js"></script></body></html>

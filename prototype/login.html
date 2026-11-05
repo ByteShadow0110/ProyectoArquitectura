@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Iniciar sesión · RefaccionesMX</title><link rel="stylesheet" href="css/styles.css"></head>
+<body class="login"><div class="card">
+<h1>Refacciones<span style="color:var(--brand)">MX</span></h1><p>Gestión de personal y activos</p>
+<form action="dashboard.html" onsubmit="localStorage.setItem('rol',document.getElementById('r').value)">
+<div class="field"><label for="c">Correo</label><input id="c" type="email" placeholder="correo@tienda.com" required></div>
+<div class="field"><label for="p">Contraseña</label><input id="p" type="password" required></div>
+<div class="field"><label for="r">Entrar como (solo maqueta)</label><select id="r"><option value="admin">Administrador</option><option value="supervisor">Supervisor</option><option value="operativo">Operativo</option></select></div>
+<button class="btn" style="width:100%">Iniciar sesión</button>
+<p class="proto-note">Maqueta: cualquier dato funciona. Mensaje de error real: «Credenciales incorrectas».</p>
+</form></div></body></html>

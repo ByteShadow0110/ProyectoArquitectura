@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Activos · RefaccionesMX</title><link rel="stylesheet" href="css/styles.css"></head>
+<body data-page="activos" data-title="Activos">
+<div class="card">
+ <div class="toolbar">
+  <input class="grow" data-filter="#t" placeholder="🔍 Buscar por SKU, nombre o modelo compatible…" aria-label="Buscar">
+  <select aria-label="Tipo"><option>Todos los tipos</option><option>Refacción</option><option>Herramienta</option><option>Equipo</option></select>
+  <select aria-label="Estado"><option>Todos los estados</option><option>Disponible</option><option>Asignado</option><option>Mantenimiento</option></select>
+  <a class="btn" href="activo-form.html" data-roles="admin,supervisor">+ Nuevo activo</a>
+ </div>
+ <div class="table-wrap"><table id="t"><thead><tr><th>SKU</th><th>Nombre</th><th>Tipo</th><th>Stock</th><th>Estado</th><th></th></tr></thead><tbody>
+  <tr><td>PAN-IP11</td><td>Pantalla iPhone 11</td><td>Refacción</td><td><span class="badge b-bad">2 / 5</span></td><td><span class="badge b-ok">Disponible</span></td><td><a href="activo-detalle.html">Ver</a></td></tr>
+  <tr><td>BAT-A32</td><td>Batería Galaxy A32</td><td>Refacción</td><td><span class="badge b-bad">1 / 4</span></td><td><span class="badge b-ok">Disponible</span></td><td><a href="activo-detalle.html">Ver</a></td></tr>
+  <tr><td>PAN-A54</td><td>Pantalla Galaxy A54</td><td>Refacción</td><td>12 / 5</td><td><span class="badge b-ok">Disponible</span></td><td><a href="activo-detalle.html">Ver</a></td></tr>
+  <tr><td>HER-014</td><td>Estación de calor</td><td>Herramienta</td><td>—</td><td><span class="badge b-info">Asignado</span></td><td><a href="activo-detalle.html">Ver</a></td></tr>
+  <tr><td>HER-021</td><td>Microscopio</td><td>Herramienta</td><td>—</td><td><span class="badge b-warn">Mantenimiento</span></td><td><a href="activo-detalle.html">Ver</a></td></tr>
+  <tr><td>EQ-003</td><td>Laptop de taller</td><td>Equipo</td><td>—</td><td><span class="badge b-info">Asignado</span></td><td><a href="activo-detalle.html">Ver</a></td></tr>
+ </tbody></table></div>
+ <div class="pager"><span>Mostrando 6 de 142</span><span><a class="btn sec sm" href="#">←</a> <a class="btn sec sm" href="#">→</a></span></div>
+</div>
+<script src="js/app.js"></script></body></html>

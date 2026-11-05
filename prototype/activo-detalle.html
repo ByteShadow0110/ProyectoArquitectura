@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Detalle de activo · RefaccionesMX</title><link rel="stylesheet" href="css/styles.css"></head>
+<body data-page="activos" data-title="Detalle de activo">
+<p><a href="activos.html">← Volver a activos</a></p>
+<div class="grid g2">
+ <div class="card"><h2>Pantalla iPhone 11</h2><dl class="dl">
+  <dt>SKU</dt><dd>PAN-IP11</dd><dt>Tipo</dt><dd>Refacción</dd><dt>Estado</dt><dd><span class="badge b-ok">Disponible</span></dd>
+  <dt>Stock</dt><dd><span class="badge b-bad">2</span> (mínimo 5)</dd><dt>Compatibles</dt><dd>iPhone 11</dd><dt>Costo</dt><dd>$850.00 MXN</dd></dl>
+  <p data-roles="admin,supervisor"><a class="btn sec" href="activo-form.html">Editar</a></p></div>
+ <div class="card" data-roles="admin,supervisor"><h2>Asignar a persona</h2>
+  <form data-demo="activos.html"><div class="field"><label for="p">Persona</label><select id="p"><option>Ana Torres</option><option>Luis Ramos</option><option>Pedro Ruiz</option></select></div>
+  <div class="field"><label for="n">Nota</label><textarea id="n" rows="2"></textarea></div><button class="btn ok">Asignar</button></form></div>
+</div>
+<div class="card"><h2>Bitácora de movimientos</h2><div class="table-wrap"><table>
+ <tr><th>Fecha</th><th>Tipo</th><th>Cant.</th><th>Usuario</th></tr>
+ <tr><td>28/10/2026</td><td>Salida</td><td>1</td><td>María Pérez</td></tr>
+ <tr><td>20/10/2026</td><td>Entrada</td><td>5</td><td>Pedro Ruiz</td></tr></table></div></div>
+<script src="js/app.js"></script></body></html>

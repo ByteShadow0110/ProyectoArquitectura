@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Persona · RefaccionesMX</title><link rel="stylesheet" href="css/styles.css"></head>
+<body data-page="personas" data-title="Persona (alta / edición)">
+<p><a href="personas.html">← Cancelar</a></p>
+<form class="card" data-demo="personas.html">
+ <div class="form-grid">
+  <div class="field"><label for="n">Nombre *</label><input id="n" required></div>
+  <div class="field"><label for="a">Apellidos *</label><input id="a" required></div>
+  <div class="field"><label for="c">Correo</label><input id="c" type="email"></div>
+  <div class="field"><label for="t">Teléfono</label><input id="t" type="tel"></div>
+  <div class="field"><label for="ar">Área *</label><select id="ar" required><option value="">Selecciona…</option><option>Ventas</option><option>Taller</option><option>Almacén</option><option>Administración</option></select></div>
+  <div class="field"><label for="p">Puesto</label><input id="p"></div>
+  <div class="field"><label for="f">Fecha de ingreso *</label><input id="f" type="date" required></div>
+ </div>
+ <button class="btn">Guardar</button> <a class="btn sec" href="personas.html">Cancelar</a>
+ <p class="proto-note">* obligatorio. Diseñado para completarse en menos de 2 minutos (7 campos, 4 obligatorios).</p>
+</form>
+<script src="js/app.js"></script></body></html>

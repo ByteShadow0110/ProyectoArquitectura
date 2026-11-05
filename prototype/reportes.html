@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reportes · RefaccionesMX</title><link rel="stylesheet" href="css/styles.css"></head>
+<body data-page="reportes" data-title="Reportes">
+<div class="card"><h2>Generar reporte</h2>
+ <div class="toolbar">
+  <select aria-label="Tipo de reporte"><option>Activos por estado</option><option>Asignaciones por persona</option><option>Movimientos por fecha</option><option>Stock bajo</option></select>
+  <label style="margin:0">Desde <input type="date"></label><label style="margin:0">Hasta <input type="date"></label>
+  <button class="btn">Generar</button> <button class="btn sec">⬇ CSV</button> <button class="btn sec">⬇ PDF</button></div>
+ <div class="table-wrap"><table><tr><th>Estado</th><th>Cantidad</th><th>Porcentaje</th></tr>
+  <tr><td>Disponible</td><td>98</td><td><div class="bar"><i style="width:69%"></i></div></td></tr>
+  <tr><td>Asignado</td><td>23</td><td><div class="bar"><i style="width:16%"></i></div></td></tr>
+  <tr><td>Mantenimiento</td><td>12</td><td><div class="bar"><i style="width:8%"></i></div></td></tr>
+  <tr><td>Baja</td><td>9</td><td><div class="bar"><i style="width:6%"></i></div></td></tr></table></div>
+</div>
+<script src="js/app.js"></script></body></html>
