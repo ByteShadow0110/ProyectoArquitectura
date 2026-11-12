@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title><%= title %> · RefaccionesMX</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="login">
+  <div class="card">
+    <h1>Refacciones<span style="color:var(--brand)">MX</span></h1>
+    <p>Gestión de personal y activos</p>
+    <% if (errorMessage) { %><div class="alert error" role="alert"><%= errorMessage %></div><% } %>
+    <form method="post" action="/login" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="field"><label for="correo">Correo</label>
+        <input id="correo" name="correo" type="email" value="<%= correo %>" autocomplete="username" required autofocus></div>
+      <div class="field"><label for="password">Contraseña</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required></div>
+      <button class="btn" style="width:100%" type="submit">Iniciar sesión</button>
+    </form>
+  </div>
+</body>
+</html>

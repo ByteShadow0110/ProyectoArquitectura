@@ -1,0 +1,41 @@
+<%
+  const ROLE_LABEL = { admin: 'Administrador', supervisor: 'Supervisor', operativo: 'Operativo' };
+  const NAV = [
+    { id: 'dashboard', href: '/dashboard', icon: '📊', label: 'Dashboard', roles: ['admin', 'supervisor', 'operativo'] },
+    { id: 'personas', href: '/personas', icon: '👥', label: 'Personas', roles: ['admin', 'supervisor', 'operativo'] },
+    { id: 'usuarios', href: '/usuarios', icon: '🔐', label: 'Usuarios y roles', roles: ['admin'] },
+  ];
+%><!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title><%= title %> · RefaccionesMX</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">Refacciones<span>MX</span></div>
+    <nav class="nav" aria-label="Principal">
+      <% NAV.filter(n => n.roles.includes(user.rol)).forEach(n => { %>
+        <a href="<%= n.href %>" class="<%= n.id === active ? 'active' : '' %>"><span><%= n.icon %></span><%= n.label %></a>
+      <% }) %>
+    </nav>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="menu-btn" id="menu" type="button" aria-label="Menú">☰</button>
+        <h1><%= title %></h1>
+      </div>
+      <div class="who">
+        <span><%= user.nombre %> · <%= ROLE_LABEL[user.rol] %></span>
+        <form method="post" action="/logout">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="logout" type="submit">Salir</button>
+        </form>
+      </div>
+    </header>
+    <main class="content">
+      <% if (flash) { %><div class="alert <%= flash.type %>" role="status"><%= flash.text %></div><% } %>

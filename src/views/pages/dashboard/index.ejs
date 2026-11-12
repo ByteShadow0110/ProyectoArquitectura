@@ -1,0 +1,10 @@
+<%- include('../../partials/layout-start') %>
+<div class="grid g4">
+  <div class="card kpi"><div class="n"><%= personasActivas %></div><div class="l">Personas activas</div></div>
+</div>
+<div class="card">
+  <h2>Bienvenido, <%= user.nombre %></h2>
+  <p>Los indicadores de activos, solicitudes y reportes se integrarán en los siguientes sprints.</p>
+  <a class="btn" href="/personas">Ir a personas</a>
+</div>
+<%- include('../../partials/layout-end') %>

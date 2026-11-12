@@ -1,0 +1,48 @@
+<%- include('../../partials/layout-start') %>
+<%
+  const ROLE_LABEL = { admin: 'Administrador', supervisor: 'Supervisor', operativo: 'Operativo' };
+  const ROLE_BADGE = { admin: 'b-info', supervisor: 'b-warn', operativo: 'b-mute' };
+%>
+<div class="card">
+  <form class="toolbar" method="get" action="/usuarios">
+    <input class="grow" type="search" name="q" value="<%= q %>" placeholder="🔍 Buscar por correo o nombre…" aria-label="Buscar">
+    <button class="btn sec" type="submit">Buscar</button>
+    <a class="btn" href="/usuarios/nuevo">+ Nuevo usuario</a>
+  </form>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Correo</th><th>Persona</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+      <% if (!usuarios.length) { %><tr><td colspan="5" class="empty">No hay usuarios con ese criterio.</td></tr><% } %>
+      <% usuarios.forEach(u => { %>
+        <tr>
+          <td><%= u.correo %></td>
+          <td><%= u.persona_nombre || '—' %></td>
+          <td><span class="badge <%= ROLE_BADGE[u.rol] %>"><%= ROLE_LABEL[u.rol] %></span></td>
+          <td><span class="badge <%= u.activo ? 'b-ok' : 'b-mute' %>"><%= u.activo ? 'Activo' : 'Inactivo' %></span></td>
+          <td>
+            <a href="/usuarios/<%= u.id %>/editar">Editar</a>
+            <% if (u.id !== user.id) { %>
+            <form class="inline-form" method="post" action="/usuarios/<%= u.id %>/estado"
+                  data-confirm="<%= u.activo ? '¿Desactivar este usuario? Ya no podrá iniciar sesión.' : '¿Activar este usuario?' %>">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn sm sec" type="submit"><%= u.activo ? 'Desactivar' : 'Activar' %></button>
+            </form>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table></div>
+</div>
+<div class="card">
+  <h2>Permisos por rol</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Función</th><th>Admin</th><th>Supervisor</th><th>Operativo</th></tr></thead>
+    <tbody>
+      <tr><td>Usuarios y roles</td><td>✔</td><td>✘</td><td>✘</td></tr>
+      <tr><td>Personas (alta, edición, baja)</td><td>✔</td><td>✔ (su área)</td><td>✘</td></tr>
+      <tr><td>Consultar personas</td><td>✔</td><td>✔ (su área)</td><td>✔</td></tr>
+    </tbody>
+  </table></div>
+</div>
+<%- include('../../partials/layout-end') %>

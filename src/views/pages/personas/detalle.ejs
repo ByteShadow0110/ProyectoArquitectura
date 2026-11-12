@@ -1,0 +1,43 @@
+<%- include('../../partials/layout-start') %>
+<p><a href="/personas">← Volver a personas</a></p>
+<div class="grid g2">
+  <div class="card">
+    <h2>Datos generales</h2>
+    <dl class="dl">
+      <dt>Nombre</dt><dd><%= persona.nombre %> <%= persona.apellidos %></dd>
+      <dt>Área</dt><dd><%= persona.area || '—' %></dd>
+      <dt>Puesto</dt><dd><%= persona.puesto || '—' %></dd>
+      <dt>Correo</dt><dd><%= persona.correo || '—' %></dd>
+      <dt>Teléfono</dt><dd><%= persona.telefono || '—' %></dd>
+      <dt>Ingreso</dt><dd><%= fmtDate(persona.fecha_ingreso) %></dd>
+      <dt>Estado</dt><dd><span class="badge <%= persona.activo ? 'b-ok' : 'b-mute' %>"><%= persona.activo ? 'Activo' : 'Inactivo' %></span></dd>
+    </dl>
+    <% if (canManage) { %>
+    <div>
+      <a class="btn sec" href="/personas/<%= persona.id %>/editar">Editar</a>
+      <form class="inline-form" method="post" action="/personas/<%= persona.id %>/baja"
+            data-confirm="<%= persona.activo ? '¿Dar de baja a esta persona?' : '¿Reactivar a esta persona?' %>">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="btn <%= persona.activo ? 'bad' : 'ok' %>" type="submit"><%= persona.activo ? 'Dar de baja' : 'Reactivar' %></button>
+      </form>
+    </div>
+    <% } %>
+  </div>
+
+  <div class="card">
+    <h2>Activos asignados</h2>
+    <% if (!asignaciones.length) { %>
+      <p class="hint">Esta persona no tiene activos asignados.</p>
+    <% } else { %>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Código</th><th>Activo</th><th>Desde</th></tr></thead>
+      <tbody>
+        <% asignaciones.forEach(a => { %>
+          <tr><td><%= a.codigo %></td><td><%= a.nombre %></td><td><%= fmtDate(a.fecha_asignacion) %></td></tr>
+        <% }) %>
+      </tbody>
+    </table></div>
+    <% } %>
+  </div>
+</div>
+<%- include('../../partials/layout-end') %>
