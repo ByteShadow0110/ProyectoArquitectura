@@ -1,0 +1,23 @@
+<%- include('../../partials/layout-start') %>
+<div class="grid g4">
+  <div class="card kpi"><span class="ico c1"><%- icon('people', 'lg') %></span><div><div class="n"><%= personasActivas %></div><div class="l">Personas activas</div></div></div>
+  <div class="card kpi soon"><span class="ico c2"><%- icon('build', 'lg') %></span><div><div class="n">—</div><div class="l">Activos · Sprint 2</div></div></div>
+  <div class="card kpi soon"><span class="ico c3"><%- icon('assign', 'lg') %></span><div><div class="n">—</div><div class="l">Solicitudes · Sprint 2</div></div></div>
+</div>
+<div class="grid g2" style="margin-top:16px">
+  <div class="card">
+    <h2>Bienvenido, <%= user.nombre %></h2>
+    <p>Los indicadores de activos, solicitudes y reportes se integrarán en los siguientes sprints.</p>
+    <a class="btn" href="/personas"><%- icon('people', 'sm') %>Ir a personas</a>
+  </div>
+  <% if (user.rol !== 'operativo') { %>
+  <div class="card">
+    <h2>Accesos rápidos</h2>
+    <div class="btn-row">
+      <a class="btn sec" href="/personas/nueva"><%- icon('add', 'sm') %>Nueva persona</a>
+      <% if (user.rol === 'admin') { %><a class="btn sec" href="/usuarios/nuevo"><%- icon('add', 'sm') %>Nuevo usuario</a><% } %>
+    </div>
+  </div>
+  <% } %>
+</div>
+<%- include('../../partials/layout-end') %>

@@ -1,0 +1,48 @@
+<%
+  const ROLE_LABEL = { admin: 'Administrador', supervisor: 'Supervisor', operativo: 'Operativo' };
+  const NAV = [
+    { id: 'dashboard', href: '/dashboard', icon: 'dashboard', label: 'Dashboard', roles: ['admin', 'supervisor', 'operativo'] },
+    { id: 'personas', href: '/personas', icon: 'people', label: 'Personas', roles: ['admin', 'supervisor', 'operativo'] },
+    { id: 'usuarios', href: '/usuarios', icon: 'shield', label: 'Usuarios y roles', roles: ['admin'] },
+  ];
+%><!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title><%= title %> · RefaccionesMX</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="/js/theme.js"></script>
+</head>
+<body>
+<%- include('icons') %>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><%- icon('phone') %><span>Refacciones<b>MX</b></span></div>
+    <nav class="nav" aria-label="Principal">
+      <% NAV.filter(n => n.roles.includes(user.rol)).forEach(n => { %>
+        <a href="<%= n.href %>" title="<%= n.label %>" class="<%= n.id === active ? 'active' : '' %>" <%- n.id === active ? 'aria-current="page"' : '' %>>
+          <%- icon(n.icon) %><span class="label"><%= n.label %></span>
+        </a>
+      <% }) %>
+    </nav>
+    <div class="side-foot">Sprint 1 · v0.1</div>
+  </aside>
+  <div class="backdrop" id="backdrop"></div>
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-l">
+        <button class="icon-btn" id="menu" type="button" aria-label="Mostrar u ocultar menú" aria-controls="sidebar" aria-expanded="true"><%- icon('menu') %></button>
+        <h1><%= title %></h1>
+      </div>
+      <div class="who">
+        <span class="avatar" aria-hidden="true"><%- icon('person', 'sm') %></span>
+        <span class="who-txt"><b><%= user.nombre %></b><small><%= ROLE_LABEL[user.rol] %></small></span>
+        <form method="post" action="/logout">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="icon-btn" type="submit" aria-label="Cerrar sesión" title="Cerrar sesión"><%- icon('logout') %></button>
+        </form>
+      </div>
+    </header>
+    <main class="content">
+      <% if (flash) { %><div class="alert <%= flash.type %>" role="status"><%- icon(flash.type === 'ok' ? 'ok' : 'error') %><span><%= flash.text %></span></div><% } %>

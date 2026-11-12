@@ -1,0 +1,39 @@
+<%- include('../../partials/layout-start') %>
+<%
+  const action = editing ? `/usuarios/${usuario.id}` : '/usuarios';
+  const v = (k) => (usuario && usuario[k] != null ? usuario[k] : '');
+  const cls = (k) => (errors[k] ? 'invalid' : '');
+  const ROLE_LABEL = { admin: 'Administrador', supervisor: 'Supervisor', operativo: 'Operativo' };
+%>
+<a class="back" href="/usuarios"><%- icon('back', 'sm') %>Cancelar</a>
+<form class="card" method="post" action="<%= action %>" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <% if (errorMessage) { %><div class="alert error" role="alert"><%- icon('error') %><span><%= errorMessage %></span></div><% } %>
+  <div class="form-grid">
+    <div class="field"><label for="persona_id">Persona</label>
+      <select id="persona_id" name="persona_id" class="<%= cls('persona_id') %>">
+        <option value="">Sin persona asociada</option>
+        <% personas.forEach(p => { %><option value="<%= p.id %>" <%= String(v('persona_id')) === String(p.id) ? 'selected' : '' %>><%= p.nombre %> <%= p.apellidos %> (<%= p.area || 'sin área' %>)</option><% }) %>
+      </select>
+      <% if (errors.persona_id) { %><div class="err"><%= errors.persona_id %></div><% } %></div>
+    <div class="field"><label for="correo">Correo *</label>
+      <input id="correo" name="correo" type="email" class="<%= cls('correo') %>" value="<%= v('correo') %>" maxlength="120" required>
+      <% if (errors.correo) { %><div class="err"><%= errors.correo %></div><% } %></div>
+    <div class="field"><label for="password">Contraseña <%= editing ? '(vacía = no cambiar)' : '* (mín. 8 caracteres)' %></label>
+      <input id="password" name="password" type="password" class="<%= cls('password') %>" autocomplete="new-password" minlength="8" <%= editing ? '' : 'required' %>>
+      <% if (errors.password) { %><div class="err"><%= errors.password %></div><% } %></div>
+    <div class="field"><label for="rol_id">Rol *</label>
+      <select id="rol_id" name="rol_id" class="<%= cls('rol_id') %>" required>
+        <option value="">Selecciona…</option>
+        <% roles.forEach(r => { %><option value="<%= r.id %>" <%= String(v('rol_id')) === String(r.id) ? 'selected' : '' %>><%= ROLE_LABEL[r.nombre] %></option><% }) %>
+      </select>
+      <% if (errors.rol_id) { %><div class="err"><%= errors.rol_id %></div><% } %></div>
+    <div class="field"><label class="check"><input type="checkbox" name="activo" <%= usuario.activo ? 'checked' : '' %>> Usuario activo</label></div>
+  </div>
+  <p class="hint">Un supervisor debe estar ligado a una persona, porque su área define lo que puede gestionar.</p>
+  <div class="btn-row">
+    <button class="btn" type="submit"><%- icon('check', 'sm') %>Guardar</button>
+    <a class="btn sec" href="/usuarios">Cancelar</a>
+  </div>
+</form>
+<%- include('../../partials/layout-end') %>

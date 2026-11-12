@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "5500", "--directory", "prototype"],
       "port": 5500
+    },
+    {
+      "name": "app",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+      "runtimeArgs": ["src/server.js"],
+      "port": 3000
     }
   ]
 }
