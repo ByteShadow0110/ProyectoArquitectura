@@ -2,32 +2,36 @@
 <%
   const ROLE_LABEL = { admin: 'Administrador', supervisor: 'Supervisor', operativo: 'Operativo' };
   const ROLE_BADGE = { admin: 'b-info', supervisor: 'b-warn', operativo: 'b-mute' };
+  const perm = (ok, note) => `<span class="perm ${ok ? 'y' : 'n'}">${icon(ok ? 'check' : 'close', 'sm')}</span>${note ? ' <small class="hint">' + note + '</small>' : ''}`;
 %>
 <div class="card">
   <form class="toolbar" method="get" action="/usuarios">
-    <input class="grow" type="search" name="q" value="<%= q %>" placeholder="🔍 Buscar por correo o nombre…" aria-label="Buscar">
-    <button class="btn sec" type="submit">Buscar</button>
-    <a class="btn" href="/usuarios/nuevo">+ Nuevo usuario</a>
+    <div class="search"><%- icon('search', 'sm') %>
+      <input type="search" name="q" value="<%= q %>" placeholder="Buscar por correo o nombre" aria-label="Buscar"></div>
+    <button class="btn sec" type="submit"><%- icon('search', 'sm') %>Buscar</button>
+    <a class="btn" href="/usuarios/nuevo"><%- icon('add', 'sm') %>Nuevo usuario</a>
   </form>
-  <div class="table-wrap"><table>
+  <div class="table-wrap"><table class="table-stack">
     <thead><tr><th>Correo</th><th>Persona</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
     <tbody>
-      <% if (!usuarios.length) { %><tr><td colspan="5" class="empty">No hay usuarios con ese criterio.</td></tr><% } %>
+      <% if (!usuarios.length) { %><tr><td colspan="5" class="empty row-empty">No hay usuarios con ese criterio.</td></tr><% } %>
       <% usuarios.forEach(u => { %>
         <tr>
-          <td><%= u.correo %></td>
-          <td><%= u.persona_nombre || '—' %></td>
-          <td><span class="badge <%= ROLE_BADGE[u.rol] %>"><%= ROLE_LABEL[u.rol] %></span></td>
-          <td><span class="badge <%= u.activo ? 'b-ok' : 'b-mute' %>"><%= u.activo ? 'Activo' : 'Inactivo' %></span></td>
+          <td data-label="Correo"><%= u.correo %></td>
+          <td data-label="Persona"><%= u.persona_nombre || '—' %></td>
+          <td data-label="Rol"><span class="badge <%= ROLE_BADGE[u.rol] %>"><%= ROLE_LABEL[u.rol] %></span></td>
+          <td data-label="Estado"><span class="badge <%= u.activo ? 'b-ok' : 'b-mute' %>"><%= u.activo ? 'Activo' : 'Inactivo' %></span></td>
           <td>
-            <a href="/usuarios/<%= u.id %>/editar">Editar</a>
-            <% if (u.id !== user.id) { %>
-            <form class="inline-form" method="post" action="/usuarios/<%= u.id %>/estado"
-                  data-confirm="<%= u.activo ? '¿Desactivar este usuario? Ya no podrá iniciar sesión.' : '¿Activar este usuario?' %>">
-              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <button class="btn sm sec" type="submit"><%= u.activo ? 'Desactivar' : 'Activar' %></button>
-            </form>
-            <% } %>
+            <div class="actions">
+              <a class="btn sm sec" href="/usuarios/<%= u.id %>/editar"><%- icon('edit', 'sm') %>Editar</a>
+              <% if (u.id !== user.id) { %>
+              <form class="inline-form" method="post" action="/usuarios/<%= u.id %>/estado"
+                    data-confirm="<%= u.activo ? '¿Desactivar este usuario? Ya no podrá iniciar sesión.' : '¿Activar este usuario?' %>">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn sm sec" type="submit"><%- icon(u.activo ? 'block' : 'refresh', 'sm') %><%= u.activo ? 'Desactivar' : 'Activar' %></button>
+              </form>
+              <% } %>
+            </div>
           </td>
         </tr>
       <% }) %>
@@ -39,9 +43,9 @@
   <div class="table-wrap"><table>
     <thead><tr><th>Función</th><th>Admin</th><th>Supervisor</th><th>Operativo</th></tr></thead>
     <tbody>
-      <tr><td>Usuarios y roles</td><td>✔</td><td>✘</td><td>✘</td></tr>
-      <tr><td>Personas (alta, edición, baja)</td><td>✔</td><td>✔ (su área)</td><td>✘</td></tr>
-      <tr><td>Consultar personas</td><td>✔</td><td>✔ (su área)</td><td>✔</td></tr>
+      <tr><td>Usuarios y roles</td><td><%- perm(true) %></td><td><%- perm(false) %></td><td><%- perm(false) %></td></tr>
+      <tr><td>Personas (alta, edición, baja)</td><td><%- perm(true) %></td><td><%- perm(true, 'su área') %></td><td><%- perm(false) %></td></tr>
+      <tr><td>Consultar personas</td><td><%- perm(true) %></td><td><%- perm(true, 'su área') %></td><td><%- perm(true) %></td></tr>
     </tbody>
   </table></div>
 </div>

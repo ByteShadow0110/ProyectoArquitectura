@@ -40,6 +40,8 @@ app.use(csrf);
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
   res.locals.path = req.path;
+  // Ícono del sprite (views/partials/icons.ejs). Solo recibe nombres fijos del código, nunca datos del usuario.
+  res.locals.icon = (name, size = '') => `<svg class="icon ${size}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   res.locals.fmtDate = (d) => {
     if (!d) return '—';
     const [y, m, day] = String(d).slice(0, 10).split('-');

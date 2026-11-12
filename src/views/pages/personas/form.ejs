@@ -1,13 +1,14 @@
 <%- include('../../partials/layout-start') %>
 <%
   const action = editing ? `/personas/${persona.id}` : '/personas';
+  const back = editing ? `/personas/${persona.id}` : '/personas';
   const v = (k) => (persona && persona[k] != null ? persona[k] : '');
   const cls = (k) => (errors[k] ? 'invalid' : '');
 %>
-<p><a href="<%= editing ? `/personas/${persona.id}` : '/personas' %>">← Cancelar</a></p>
+<a class="back" href="<%= back %>"><%- icon('back', 'sm') %>Cancelar</a>
 <form class="card" method="post" action="<%= action %>" novalidate>
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-  <% if (errorMessage) { %><div class="alert error" role="alert"><%= errorMessage %></div><% } %>
+  <% if (errorMessage) { %><div class="alert error" role="alert"><%- icon('error') %><span><%= errorMessage %></span></div><% } %>
   <div class="form-grid">
     <div class="field"><label for="nombre">Nombre *</label>
       <input id="nombre" name="nombre" class="<%= cls('nombre') %>" value="<%= v('nombre') %>" maxlength="80" required>
@@ -34,8 +35,10 @@
       <input id="fecha_ingreso" name="fecha_ingreso" type="date" class="<%= cls('fecha_ingreso') %>" value="<%= v('fecha_ingreso') %>" required>
       <% if (errors.fecha_ingreso) { %><div class="err"><%= errors.fecha_ingreso %></div><% } %></div>
   </div>
-  <button class="btn" type="submit">Guardar</button>
-  <a class="btn sec" href="<%= editing ? `/personas/${persona.id}` : '/personas' %>">Cancelar</a>
-  <p class="proto-note">* obligatorio</p>
+  <div class="btn-row">
+    <button class="btn" type="submit"><%- icon('check', 'sm') %>Guardar</button>
+    <a class="btn sec" href="<%= back %>">Cancelar</a>
+  </div>
+  <p class="hint">* Campo obligatorio</p>
 </form>
 <%- include('../../partials/layout-end') %>

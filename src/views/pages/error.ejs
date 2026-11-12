@@ -4,7 +4,8 @@
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title><%= title %> · RefaccionesMX</title><link rel="stylesheet" href="/css/styles.css"></head><body><main class="content"><% } %>
 <div class="card error-page">
-  <h2><%= status %></h2>
+  <div class="code"><%= status %></div>
+  <h2 style="margin:8px 0"><%= title %></h2>
   <p><%= message %></p>
   <a class="btn" href="<%= user ? '/dashboard' : '/login' %>"><%= user ? 'Volver al dashboard' : 'Ir al inicio de sesión' %></a>
   <% if (detail) { %><pre><%= detail %></pre><% } %>

@@ -12,7 +12,8 @@
 %>
 <div class="card">
   <form class="toolbar" method="get" action="/personas">
-    <input class="grow" type="search" name="q" value="<%= filters.q %>" placeholder="🔍 Buscar por nombre o puesto…" aria-label="Buscar">
+    <div class="search"><%- icon('search', 'sm') %>
+      <input type="search" name="q" value="<%= filters.q %>" placeholder="Buscar por nombre o puesto" aria-label="Buscar"></div>
     <% if (user.rol !== 'supervisor') { %>
     <select name="area" aria-label="Área">
       <option value="">Todas las áreas</option>
@@ -24,24 +25,24 @@
       <option value="inactivos" <%= filters.estado === 'inactivos' ? 'selected' : '' %>>Inactivos</option>
       <option value="todos" <%= filters.estado === 'todos' ? 'selected' : '' %>>Todos</option>
     </select>
-    <button class="btn sec" type="submit">Filtrar</button>
-    <% if (canManage) { %><a class="btn" href="/personas/nueva">+ Nueva persona</a><% } %>
+    <button class="btn sec" type="submit"><%- icon('search', 'sm') %>Filtrar</button>
+    <% if (canManage) { %><a class="btn" href="/personas/nueva"><%- icon('add', 'sm') %>Nueva persona</a><% } %>
   </form>
 
-  <div class="table-wrap"><table>
+  <div class="table-wrap"><table class="table-stack">
     <thead><tr><th>Nombre</th><th>Área</th><th>Puesto</th><th>Ingreso</th><th>Estado</th><th></th></tr></thead>
     <tbody>
       <% if (!rows.length) { %>
-        <tr><td colspan="6" class="empty">No se encontraron personas con esos filtros.</td></tr>
+        <tr><td colspan="6" class="empty row-empty">No se encontraron personas con esos filtros.</td></tr>
       <% } %>
       <% rows.forEach(p => { %>
         <tr>
-          <td><%= p.nombre %> <%= p.apellidos %></td>
-          <td><%= p.area || '—' %></td>
-          <td><%= p.puesto || '—' %></td>
-          <td><%= fmtDate(p.fecha_ingreso) %></td>
-          <td><span class="badge <%= p.activo ? 'b-ok' : 'b-mute' %>"><%= p.activo ? 'Activo' : 'Inactivo' %></span></td>
-          <td><a href="/personas/<%= p.id %>">Ver expediente</a></td>
+          <td data-label="Nombre"><%= p.nombre %> <%= p.apellidos %></td>
+          <td data-label="Área"><%= p.area || '—' %></td>
+          <td data-label="Puesto"><%= p.puesto || '—' %></td>
+          <td data-label="Ingreso"><%= fmtDate(p.fecha_ingreso) %></td>
+          <td data-label="Estado"><span class="badge <%= p.activo ? 'b-ok' : 'b-mute' %>"><%= p.activo ? 'Activo' : 'Inactivo' %></span></td>
+          <td><div class="actions"><a class="btn sm sec" href="/personas/<%= p.id %>"><%- icon('view', 'sm') %>Expediente</a></div></td>
         </tr>
       <% }) %>
     </tbody>
@@ -49,9 +50,9 @@
 
   <div class="pager">
     <span><%= total %> resultado<%= total === 1 ? '' : 's' %> · página <%= page %> de <%= pages %></span>
-    <span>
-      <a class="btn sec sm <%= page <= 1 ? 'disabled' : '' %>" href="<%= qs(page - 1) %>" aria-label="Anterior">←</a>
-      <a class="btn sec sm <%= page >= pages ? 'disabled' : '' %>" href="<%= qs(page + 1) %>" aria-label="Siguiente">→</a>
+    <span class="btn-row" style="margin:0">
+      <a class="btn sec sm <%= page <= 1 ? 'disabled' : '' %>" href="<%= qs(page - 1) %>">Anterior</a>
+      <a class="btn sec sm <%= page >= pages ? 'disabled' : '' %>" href="<%= qs(page + 1) %>">Siguiente</a>
     </span>
   </div>
 </div>

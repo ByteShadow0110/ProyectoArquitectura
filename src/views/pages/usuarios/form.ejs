@@ -5,10 +5,10 @@
   const cls = (k) => (errors[k] ? 'invalid' : '');
   const ROLE_LABEL = { admin: 'Administrador', supervisor: 'Supervisor', operativo: 'Operativo' };
 %>
-<p><a href="/usuarios">← Cancelar</a></p>
+<a class="back" href="/usuarios"><%- icon('back', 'sm') %>Cancelar</a>
 <form class="card" method="post" action="<%= action %>" novalidate>
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-  <% if (errorMessage) { %><div class="alert error" role="alert"><%= errorMessage %></div><% } %>
+  <% if (errorMessage) { %><div class="alert error" role="alert"><%- icon('error') %><span><%= errorMessage %></span></div><% } %>
   <div class="form-grid">
     <div class="field"><label for="persona_id">Persona</label>
       <select id="persona_id" name="persona_id" class="<%= cls('persona_id') %>">
@@ -19,7 +19,7 @@
     <div class="field"><label for="correo">Correo *</label>
       <input id="correo" name="correo" type="email" class="<%= cls('correo') %>" value="<%= v('correo') %>" maxlength="120" required>
       <% if (errors.correo) { %><div class="err"><%= errors.correo %></div><% } %></div>
-    <div class="field"><label for="password">Contraseña <%= editing ? '(déjala vacía para no cambiarla)' : '* (mín. 8 caracteres)' %></label>
+    <div class="field"><label for="password">Contraseña <%= editing ? '(vacía = no cambiar)' : '* (mín. 8 caracteres)' %></label>
       <input id="password" name="password" type="password" class="<%= cls('password') %>" autocomplete="new-password" minlength="8" <%= editing ? '' : 'required' %>>
       <% if (errors.password) { %><div class="err"><%= errors.password %></div><% } %></div>
     <div class="field"><label for="rol_id">Rol *</label>
@@ -31,7 +31,9 @@
     <div class="field"><label class="check"><input type="checkbox" name="activo" <%= usuario.activo ? 'checked' : '' %>> Usuario activo</label></div>
   </div>
   <p class="hint">Un supervisor debe estar ligado a una persona, porque su área define lo que puede gestionar.</p>
-  <button class="btn" type="submit">Guardar</button>
-  <a class="btn sec" href="/usuarios">Cancelar</a>
+  <div class="btn-row">
+    <button class="btn" type="submit"><%- icon('check', 'sm') %>Guardar</button>
+    <a class="btn sec" href="/usuarios">Cancelar</a>
+  </div>
 </form>
 <%- include('../../partials/layout-end') %>
