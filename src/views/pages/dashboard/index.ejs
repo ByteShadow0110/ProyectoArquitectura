@@ -1,0 +1,29 @@
+<%- include('../../partials/layout-start') %>
+<div class="grid g4">
+  <div class="card kpi"><span class="ico c1"><%- icon('people', 'lg') %></span><div><div class="n"><%= personasActivas %></div><div class="l">Personas activas</div></div></div>
+  <div class="card kpi"><span class="ico c2"><%- icon('build', 'lg') %></span><div><div class="n"><%= activosTotal %></div><div class="l">Activos vigentes</div></div></div>
+  <div class="card kpi"><span class="ico c3"><%- icon('assign', 'lg') %></span><div><div class="n"><%= solicitudesPendientes %></div><div class="l">Solicitudes pendientes</div></div></div>
+  <div class="card kpi"><span class="ico c4"><%- icon('error', 'lg') %></span><div><div class="n"><%= stockBajo %></div><div class="l">Refacciones con stock bajo</div></div></div>
+</div>
+<div class="grid g2" style="margin-top:16px">
+  <div class="card">
+    <h2>Bienvenido, <%= user.nombre %></h2>
+    <p>Consulta el inventario, asigna herramientas y gestiona solicitudes. Los reportes completos llegan en el Sprint 3.</p>
+    <div class="btn-row">
+      <a class="btn" href="/activos"><%- icon('build', 'sm') %>Ir a activos</a>
+      <a class="btn sec" href="/solicitudes"><%- icon('assign', 'sm') %>Solicitudes</a>
+      <a class="btn sec" href="/personas"><%- icon('people', 'sm') %>Personas</a>
+    </div>
+  </div>
+  <% if (user.rol !== 'operativo') { %>
+  <div class="card">
+    <h2>Accesos rápidos</h2>
+    <div class="btn-row">
+      <a class="btn sec" href="/activos/nuevo"><%- icon('add', 'sm') %>Nuevo activo</a>
+      <a class="btn sec" href="/personas/nueva"><%- icon('add', 'sm') %>Nueva persona</a>
+      <% if (user.rol === 'admin') { %><a class="btn sec" href="/usuarios/nuevo"><%- icon('add', 'sm') %>Nuevo usuario</a><% } %>
+    </div>
+  </div>
+  <% } %>
+</div>
+<%- include('../../partials/layout-end') %>
