@@ -1,0 +1,24 @@
+# Base de datos de desarrollo. Uso: docker compose up -d
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: refaccionesmx-db
+    environment:
+      POSTGRES_USER: refacciones
+      POSTGRES_PASSWORD: refacciones_dev
+      POSTGRES_DB: refaccionesmx
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Se ejecutan solo la primera vez que se crea el volumen (orden alfabético)
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./db/seeds/01_seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U refacciones -d refaccionesmx"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

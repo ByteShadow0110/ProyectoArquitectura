@@ -1,0 +1,44 @@
+<%- include('../../partials/layout-start') %>
+<%
+  const action = editing ? `/personas/${persona.id}` : '/personas';
+  const back = editing ? `/personas/${persona.id}` : '/personas';
+  const v = (k) => (persona && persona[k] != null ? persona[k] : '');
+  const cls = (k) => (errors[k] ? 'invalid' : '');
+%>
+<a class="back" href="<%= back %>"><%- icon('back', 'sm') %>Cancelar</a>
+<form class="card" method="post" action="<%= action %>" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <% if (errorMessage) { %><div class="alert error" role="alert"><%- icon('error') %><span><%= errorMessage %></span></div><% } %>
+  <div class="form-grid">
+    <div class="field"><label for="nombre">Nombre *</label>
+      <input id="nombre" name="nombre" class="<%= cls('nombre') %>" value="<%= v('nombre') %>" maxlength="80" required>
+      <% if (errors.nombre) { %><div class="err"><%= errors.nombre %></div><% } %></div>
+    <div class="field"><label for="apellidos">Apellidos *</label>
+      <input id="apellidos" name="apellidos" class="<%= cls('apellidos') %>" value="<%= v('apellidos') %>" maxlength="100" required>
+      <% if (errors.apellidos) { %><div class="err"><%= errors.apellidos %></div><% } %></div>
+    <div class="field"><label for="correo">Correo</label>
+      <input id="correo" name="correo" type="email" class="<%= cls('correo') %>" value="<%= v('correo') %>" maxlength="120">
+      <% if (errors.correo) { %><div class="err"><%= errors.correo %></div><% } %></div>
+    <div class="field"><label for="telefono">Teléfono</label>
+      <input id="telefono" name="telefono" type="tel" class="<%= cls('telefono') %>" value="<%= v('telefono') %>" maxlength="20">
+      <% if (errors.telefono) { %><div class="err"><%= errors.telefono %></div><% } %></div>
+    <div class="field"><label for="area_id">Área *</label>
+      <select id="area_id" name="area_id" class="<%= cls('area_id') %>" required>
+        <option value="">Selecciona…</option>
+        <% areas.forEach(a => { %><option value="<%= a.id %>" <%= String(v('area_id')) === String(a.id) ? 'selected' : '' %>><%= a.nombre %></option><% }) %>
+      </select>
+      <% if (errors.area_id) { %><div class="err"><%= errors.area_id %></div><% } %></div>
+    <div class="field"><label for="puesto">Puesto</label>
+      <input id="puesto" name="puesto" class="<%= cls('puesto') %>" value="<%= v('puesto') %>" maxlength="60">
+      <% if (errors.puesto) { %><div class="err"><%= errors.puesto %></div><% } %></div>
+    <div class="field"><label for="fecha_ingreso">Fecha de ingreso *</label>
+      <input id="fecha_ingreso" name="fecha_ingreso" type="date" class="<%= cls('fecha_ingreso') %>" value="<%= v('fecha_ingreso') %>" required>
+      <% if (errors.fecha_ingreso) { %><div class="err"><%= errors.fecha_ingreso %></div><% } %></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn" type="submit"><%- icon('check', 'sm') %>Guardar</button>
+    <a class="btn sec" href="<%= back %>">Cancelar</a>
+  </div>
+  <p class="hint">* Campo obligatorio</p>
+</form>
+<%- include('../../partials/layout-end') %>

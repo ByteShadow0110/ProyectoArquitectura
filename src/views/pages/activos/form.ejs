@@ -1,0 +1,57 @@
+<%- include('../../partials/layout-start') %>
+<%
+  const action = editing ? `/activos/${activo.id}` : '/activos';
+  const back = editing ? `/activos/${activo.id}` : '/activos';
+  const v = (k) => (activo && activo[k] != null ? activo[k] : '');
+  const cls = (k) => (errors[k] ? 'invalid' : '');
+  const editableEstado = editing && ['disponible', 'mantenimiento'].includes(v('estado'));
+%>
+<a class="back" href="<%= back %>"><%- icon('back', 'sm') %>Cancelar</a>
+<form class="card" method="post" action="<%= action %>" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <% if (errorMessage) { %><div class="alert error" role="alert"><%- icon('error') %><span><%= errorMessage %></span></div><% } %>
+  <div class="form-grid">
+    <div class="field"><label for="codigo">Código (SKU) *</label>
+      <input id="codigo" name="codigo" class="<%= cls('codigo') %>" value="<%= v('codigo') %>" maxlength="40" required>
+      <% if (errors.codigo) { %><div class="err"><%= errors.codigo %></div><% } %></div>
+    <div class="field"><label for="nombre">Nombre *</label>
+      <input id="nombre" name="nombre" class="<%= cls('nombre') %>" value="<%= v('nombre') %>" maxlength="120" required>
+      <% if (errors.nombre) { %><div class="err"><%= errors.nombre %></div><% } %></div>
+    <div class="field"><label for="categoria_id">Categoría *</label>
+      <select id="categoria_id" name="categoria_id" class="<%= cls('categoria_id') %>" required>
+        <option value="">Selecciona…</option>
+        <% categorias.forEach(c => { %><option value="<%= c.id %>" <%= String(v('categoria_id')) === String(c.id) ? 'selected' : '' %>><%= c.nombre %> (<%= c.tipo %>)</option><% }) %>
+      </select>
+      <% if (errors.categoria_id) { %><div class="err"><%= errors.categoria_id %></div><% } %></div>
+    <% if (editableEstado) { %>
+    <div class="field"><label for="estado">Estado</label>
+      <select id="estado" name="estado" class="<%= cls('estado') %>">
+        <option value="disponible" <%= v('estado') === 'disponible' ? 'selected' : '' %>>Disponible</option>
+        <option value="mantenimiento" <%= v('estado') === 'mantenimiento' ? 'selected' : '' %>>Mantenimiento</option>
+      </select>
+      <% if (errors.estado) { %><div class="err"><%= errors.estado %></div><% } %></div>
+    <% } %>
+    <% if (!editing) { %>
+    <div class="field"><label for="stock">Stock inicial</label>
+      <input id="stock" name="stock" type="number" min="0" step="1" class="<%= cls('stock') %>" value="<%= v('stock') %>">
+      <div class="hint">Solo refacciones.</div>
+      <% if (errors.stock) { %><div class="err"><%= errors.stock %></div><% } %></div>
+    <% } %>
+    <div class="field"><label for="stock_minimo">Stock mínimo</label>
+      <input id="stock_minimo" name="stock_minimo" type="number" min="0" step="1" class="<%= cls('stock_minimo') %>" value="<%= v('stock_minimo') %>">
+      <div class="hint">Solo refacciones: se alerta cuando el stock es menor o igual.</div>
+      <% if (errors.stock_minimo) { %><div class="err"><%= errors.stock_minimo %></div><% } %></div>
+    <div class="field"><label for="modelos_compatibles">Modelos compatibles</label>
+      <input id="modelos_compatibles" name="modelos_compatibles" class="<%= cls('modelos_compatibles') %>" value="<%= v('modelos_compatibles') %>" maxlength="500" placeholder="iPhone 11, Galaxy A32">
+      <% if (errors.modelos_compatibles) { %><div class="err"><%= errors.modelos_compatibles %></div><% } %></div>
+    <div class="field"><label for="costo">Costo (MXN)</label>
+      <input id="costo" name="costo" inputmode="decimal" class="<%= cls('costo') %>" value="<%= v('costo') %>" placeholder="850.00">
+      <% if (errors.costo) { %><div class="err"><%= errors.costo %></div><% } %></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn" type="submit"><%- icon('check', 'sm') %>Guardar</button>
+    <a class="btn sec" href="<%= back %>">Cancelar</a>
+  </div>
+  <p class="hint">* Campo obligatorio</p>
+</form>
+<%- include('../../partials/layout-end') %>

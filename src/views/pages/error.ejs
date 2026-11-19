@@ -1,0 +1,13 @@
+<%
+  const layoutLocals = { title, active: '' };
+%><% if (user) { %><%- include('../partials/layout-start', layoutLocals) %><% } else { %><!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title><%= title %> · RefaccionesMX</title><link rel="stylesheet" href="/css/styles.css"></head><body><main class="content"><% } %>
+<div class="card error-page">
+  <div class="code"><%= status %></div>
+  <h2 style="margin:8px 0"><%= title %></h2>
+  <p><%= message %></p>
+  <a class="btn" href="<%= user ? '/dashboard' : '/login' %>"><%= user ? 'Volver al dashboard' : 'Ir al inicio de sesión' %></a>
+  <% if (detail) { %><pre><%= detail %></pre><% } %>
+</div>
+<% if (user) { %><%- include('../partials/layout-end') %><% } else { %></main></body></html><% } %>

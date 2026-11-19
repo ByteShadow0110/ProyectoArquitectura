@@ -1,113 +1,232 @@
-// Servicio "activos": lógica de negocio y reglas. Es la capa que se prueba (>=70% cobertura).
-// Usa modelos; no conoce Express (req/res).
-const model = require('../models/activos.model');
+// Servicio de activos (HU-05, HU-06; RF-08…RF-12). Reglas: validación, código único, baja lógica,
+// stock de refacciones, asignación/devolución y bitácora. Sin Express: recibe usuario y datos.
+const activos = require('../models/activos.model');
+const personas = require('../models/personas.model');
+const AppError = require('../utils/AppError');
 
-const TYPES = new Set(['refaccion', 'herramienta', 'equipo']);
-const FILTER_STATES = new Set(['disponible', 'asignado', 'mantenimiento', 'baja']);
-const EDITABLE_STATES = new Set(['disponible', 'mantenimiento']);
+const PAGE_SIZE = 20;
+const TIPOS = ['refaccion', 'herramienta', 'equipo'];
+const ESTADOS = ['disponible', 'asignado', 'mantenimiento', 'baja'];
+const ESTADOS_EDITABLES = ['disponible', 'mantenimiento'];
+const MOVIMIENTOS_STOCK = ['entrada', 'salida', 'ajuste'];
 
-function invalid(message) {
-  const error = new Error(message);
-  error.status = 400;
-  return error;
+const canManage = (user) => user.rol === 'admin' || user.rol === 'supervisor';
+function assertCanManage(user) {
+  if (!canManage(user)) throw AppError.forbidden();
 }
 
-function positiveId(value, label) {
-  const id = Number(value);
-  if (!Number.isInteger(id) || id < 1) throw invalid(`${label} no válido.`);
-  return id;
+const isInt = (v) => /^\d+$/.test(String(v).trim());
+
+function clean(input = {}) {
+  const t = (v) => String(v == null ? '' : v).trim();
+  return {
+    codigo: t(input.codigo).toUpperCase(),
+    nombre: t(input.nombre),
+    categoriaId: input.categoria_id ? Number(input.categoria_id) : null,
+    estado: t(input.estado),
+    stock: t(input.stock),
+    stockMinimo: t(input.stock_minimo),
+    modelosCompatibles: t(input.modelos_compatibles) || null,
+    costo: t(input.costo),
+  };
 }
 
-function numberField(value, label, { optional = false, decimal = false } = {}) {
-  if (optional && (value === '' || value == null)) return null;
-  const number = Number(value);
-  if (!Number.isFinite(number) || number < 0 || (!decimal && !Number.isInteger(number))) {
-    throw invalid(`${label} debe ser un número válido y no negativo.`);
+// Valida y devuelve los datos normalizados listos para el modelo.
+async function validate(raw, { id = null, current = null } = {}) {
+  const errors = {};
+  if (!raw.codigo) errors.codigo = 'El código (SKU) es obligatorio.';
+  else if (raw.codigo.length > 40) errors.codigo = 'Máximo 40 caracteres.';
+  else {
+    const dup = await activos.findByCodigo(raw.codigo);
+    if (dup && dup.id !== id) errors.codigo = 'Ya existe un activo con ese código.';
   }
-  return number;
-}
+  if (!raw.nombre) errors.nombre = 'El nombre es obligatorio.';
+  else if (raw.nombre.length > 120) errors.nombre = 'Máximo 120 caracteres.';
 
-async function validateAsset(input) {
-  const codigo = String(input.codigo || '').trim().toUpperCase();
-  const nombre = String(input.nombre || '').trim();
-  if (!codigo || codigo.length > 40) throw invalid('El código es obligatorio y no debe exceder 40 caracteres.');
-  if (!nombre || nombre.length > 120) throw invalid('El nombre es obligatorio y no debe exceder 120 caracteres.');
-
-  const categoria_id = positiveId(input.categoria_id, 'La categoría');
-  const category = (await model.listCategories()).find(item => item.id === categoria_id);
-  if (!category) throw invalid('Selecciona una categoría existente.');
-
-  const estado = String(input.estado || 'disponible');
-  if (!EDITABLE_STATES.has(estado)) throw invalid('El estado seleccionado no es válido.');
-  const stock = numberField(input.stock ?? 0, 'El stock');
-  const stock_minimo = numberField(input.stock_minimo ?? 0, 'El stock mínimo');
-  if (category.tipo !== 'refaccion' && (stock !== 0 || stock_minimo !== 0)) {
-    throw invalid('El stock solo aplica a activos de tipo refacción.');
+  let categoria = null;
+  if (!raw.categoriaId) errors.categoria_id = 'Selecciona una categoría.';
+  else {
+    const cats = await activos.listCategorias();
+    categoria = cats.find((c) => c.id === raw.categoriaId) || null;
+    if (!categoria) errors.categoria_id = 'La categoría seleccionada no existe.';
   }
-  const costo = numberField(input.costo, 'El costo', { optional: true, decimal: true });
-  const modelos_compatibles = String(input.modelos_compatibles || '').trim() || null;
-  if (modelos_compatibles && modelos_compatibles.length > 1000) {
-    throw invalid('Los modelos compatibles no deben exceder 1000 caracteres.');
+  const esRefaccion = !!categoria && categoria.tipo === 'refaccion';
+
+  let stock = 0;
+  let stockMinimo = 0;
+  if (esRefaccion) {
+    if (!id) { // el stock inicial solo se captura al crear; después se mueve con entradas/salidas
+      if (raw.stock !== '' && !isInt(raw.stock)) errors.stock = 'El stock debe ser un entero mayor o igual a 0.';
+      else stock = raw.stock === '' ? 0 : Number(raw.stock);
+    }
+    if (raw.stockMinimo !== '' && !isInt(raw.stockMinimo)) errors.stock_minimo = 'El stock mínimo debe ser un entero mayor o igual a 0.';
+    else stockMinimo = raw.stockMinimo === '' ? 0 : Number(raw.stockMinimo);
+    if (raw.modelosCompatibles && raw.modelosCompatibles.length > 500) errors.modelos_compatibles = 'Máximo 500 caracteres.';
   }
 
-  return { codigo, nombre, categoria_id, estado, stock, stock_minimo, costo, modelos_compatibles };
+  let costo = null;
+  if (raw.costo !== '') {
+    if (!/^\d{1,8}(\.\d{1,2})?$/.test(raw.costo)) errors.costo = 'Costo no válido (ej. 850.00).';
+    else costo = Number(raw.costo);
+  }
+
+  let estado = current ? current.estado : 'disponible';
+  if (current && ESTADOS_EDITABLES.includes(current.estado) && raw.estado) {
+    if (!ESTADOS_EDITABLES.includes(raw.estado)) errors.estado = 'Estado no válido.';
+    else estado = raw.estado;
+  }
+
+  if (Object.keys(errors).length) throw AppError.validation(errors);
+  return {
+    codigo: raw.codigo, nombre: raw.nombre, categoriaId: raw.categoriaId, estado,
+    stock, stockMinimo, costo,
+    modelosCompatibles: esRefaccion ? raw.modelosCompatibles : null,
+    tipo: categoria.tipo,
+  };
 }
 
 module.exports = {
-  async list(filters = {}) {
-    const tipo = filters.tipo || '';
-    const estado = filters.estado || '';
-    if (tipo && !TYPES.has(tipo)) throw invalid('El tipo seleccionado no es válido.');
-    if (estado && !FILTER_STATES.has(estado)) throw invalid('El estado seleccionado no es válido.');
-    return model.list({
-      search: String(filters.buscar || '').trim().slice(0, 100),
-      tipo,
-      estado,
-    });
-  },
+  PAGE_SIZE, TIPOS, ESTADOS, MOVIMIENTOS_STOCK,
+  clean,
+  canManage,
+  listCategorias: () => activos.listCategorias(),
+  countActivos: () => activos.countActivos(),
+  countStockBajo: () => activos.countStockBajo(),
 
-  async formData() {
-    return { categories: await model.listCategories() };
+  async list(user, query = {}) {
+    const q = String(query.q || '').trim().slice(0, 80);
+    const tipo = TIPOS.includes(query.tipo) ? query.tipo : '';
+    const estado = ESTADOS.includes(query.estado) ? query.estado : '';
+    const vigencia = ['activos', 'inactivos', 'todos'].includes(query.vigencia) ? query.vigencia : 'activos';
+    const page = Math.max(1, Number(query.page) || 1);
+
+    const filters = { q, tipo, estado, vigencia };
+    const [total, rows] = await Promise.all([
+      activos.count(filters),
+      activos.list(filters, { limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }),
+    ]);
+    return { rows, total, page, pages: Math.max(1, Math.ceil(total / PAGE_SIZE)), filters };
   },
 
   async get(id) {
-    const asset = await model.getById(positiveId(id, 'El activo'));
-    if (!asset) {
-      const error = new Error('No se encontró el activo.');
-      error.status = 404;
-      throw error;
-    }
-    return asset;
+    const activo = await activos.findById(id);
+    if (!activo) throw AppError.notFound('Activo no encontrado.');
+    return activo;
   },
 
-  async create(input, userId) {
-    return model.create(await validateAsset(input), positiveId(userId, 'El usuario'));
+  // Detalle con bitácora (RF-12), asignación vigente y personas elegibles para asignar.
+  async getDetalle(user, id) {
+    const activo = await this.get(id);
+    const [movimientos, asignacion] = await Promise.all([
+      activos.listMovimientos(id),
+      activos.findAsignacionVigente(id),
+    ]);
+    let personasOpciones = [];
+    if (canManage(user) && activo.activo && activo.tipo !== 'refaccion' && activo.estado === 'disponible') {
+      personasOpciones = await this.listPersonasAsignables(user);
+    }
+    return { activo, movimientos, asignacion, personasOpciones };
   },
 
-  async update(id, input, userId) {
-    const result = await model.update(
-      positiveId(id, 'El activo'),
-      await validateAsset(input),
-      positiveId(userId, 'El usuario')
-    );
-    if (!result) {
-      const error = new Error('No se encontró el activo.');
-      error.status = 404;
-      throw error;
-    }
-    return result;
+  // Personas activas a las que el usuario puede asignar (el supervisor solo su área, RN-04).
+  async listPersonasAsignables(user) {
+    const todas = await personas.listSimple();
+    return user.rol === 'supervisor' ? todas.filter((p) => p.area_id === user.areaId) : todas;
   },
 
-  async deactivate(id, userId) {
-    const result = await model.deactivate(
-      positiveId(id, 'El activo'),
-      positiveId(userId, 'El usuario')
-    );
-    if (!result) {
-      const error = new Error('No se encontró el activo.');
-      error.status = 404;
-      throw error;
+  async create(user, input) {
+    assertCanManage(user);
+    const data = await validate(clean(input));
+    return activos.transaction(async (client) => {
+      const id = await activos.create(data, client);
+      if (data.stock > 0) {
+        await activos.insertMovimiento({ activoId: id, tipo: 'entrada', cantidad: data.stock, usuarioId: user.id, nota: 'Stock inicial' }, client);
+      }
+      return id;
+    });
+  },
+
+  async update(user, id, input) {
+    assertCanManage(user);
+    const current = await this.get(id);
+    const data = await validate(clean(input), { id: current.id, current });
+    await activos.update(id, data);
+  },
+
+  // Baja/alta lógica (RN-02): nunca se borra el registro. Un activo asignado debe devolverse antes.
+  async toggleActivo(user, id) {
+    assertCanManage(user);
+    const current = await this.get(id);
+    if (current.activo && current.estado === 'asignado') {
+      throw AppError.conflict('No se puede dar de baja: el activo está asignado. Regístralo como devuelto primero.');
     }
-    return result;
+    await activos.setActivo(id, !current.activo);
+    return !current.activo;
+  },
+
+  // Asignar un activo individual a una persona (HU-06): solo disponibles; queda en bitácora.
+  async asignar(user, id, input = {}) {
+    assertCanManage(user);
+    const personaId = Number(input.persona_id);
+    if (!personaId) throw AppError.validation({ persona_id: 'Selecciona una persona.' }, 'Selecciona una persona.');
+    const persona = await personas.findById(personaId);
+    if (!persona || !persona.activo) throw AppError.validation({ persona_id: 'La persona no existe o está inactiva.' }, 'La persona no existe o está inactiva.');
+    if (user.rol === 'supervisor' && persona.area_id !== user.areaId) throw AppError.forbidden('Solo puedes asignar a personas de tu área.');
+    const nota = String(input.nota || '').trim().slice(0, 300) || null;
+
+    await activos.transaction(async (client) => {
+      const activo = await activos.findById(id, client, true);
+      if (!activo) throw AppError.notFound('Activo no encontrado.');
+      if (!activo.activo) throw AppError.conflict('El activo está dado de baja.');
+      if (activo.tipo === 'refaccion') throw AppError.conflict('Las refacciones se controlan por stock, no por asignación.');
+      if (activo.estado !== 'disponible') throw AppError.conflict(`El activo no está disponible (estado: ${activo.estado}).`);
+      await activos.insertAsignacion({ activoId: id, personaId, asignadoPor: user.id }, client);
+      await activos.setEstado(id, 'asignado', client);
+      await activos.insertMovimiento({ activoId: id, tipo: 'asignacion', usuarioId: user.id, nota: nota || `Asignado a ${persona.nombre} ${persona.apellidos}` }, client);
+    });
+  },
+
+  async devolver(user, id, input = {}) {
+    assertCanManage(user);
+    const nota = String(input.nota || '').trim().slice(0, 300) || null;
+    await activos.transaction(async (client) => {
+      const activo = await activos.findById(id, client, true);
+      if (!activo) throw AppError.notFound('Activo no encontrado.');
+      const vigente = await activos.findAsignacionVigente(id, client);
+      if (!vigente) throw AppError.conflict('El activo no tiene una asignación vigente.');
+      if (user.rol === 'supervisor' && vigente.area_id !== user.areaId) throw AppError.forbidden('El activo está asignado a una persona de otra área.');
+      await activos.cerrarAsignacion(vigente.id, client);
+      await activos.setEstado(id, 'disponible', client);
+      await activos.insertMovimiento({ activoId: id, tipo: 'devolucion', usuarioId: user.id, nota: nota || `Devuelto por ${vigente.nombre} ${vigente.apellidos}` }, client);
+    });
+  },
+
+  // Entradas, salidas y ajustes de stock de refacciones (RF-09, RF-12). El stock nunca queda negativo.
+  async moverStock(user, id, input = {}) {
+    assertCanManage(user);
+    const tipo = String(input.tipo || '');
+    const errors = {};
+    if (!MOVIMIENTOS_STOCK.includes(tipo)) errors.tipo = 'Selecciona el tipo de movimiento.';
+    const rawCant = String(input.cantidad == null ? '' : input.cantidad).trim();
+    if (!isInt(rawCant)) errors.cantidad = 'La cantidad debe ser un entero mayor o igual a 0.';
+    const cantidad = isInt(rawCant) ? Number(rawCant) : 0;
+    if (tipo !== 'ajuste' && isInt(rawCant) && cantidad < 1) errors.cantidad = 'La cantidad debe ser al menos 1.';
+    const nota = String(input.nota || '').trim().slice(0, 300) || null;
+    if (tipo === 'ajuste' && !nota) errors.nota = 'Explica el motivo del ajuste.';
+    if (Object.keys(errors).length) throw AppError.validation(errors);
+
+    await activos.transaction(async (client) => {
+      const activo = await activos.findById(id, client, true);
+      if (!activo) throw AppError.notFound('Activo no encontrado.');
+      if (!activo.activo) throw AppError.conflict('El activo está dado de baja.');
+      if (activo.tipo !== 'refaccion') throw AppError.conflict('Solo las refacciones manejan stock.');
+      let nuevo;
+      if (tipo === 'entrada') nuevo = activo.stock + cantidad;
+      else if (tipo === 'salida') nuevo = activo.stock - cantidad;
+      else nuevo = cantidad; // ajuste: la cantidad es el nuevo stock total
+      if (nuevo < 0) throw AppError.conflict(`Stock insuficiente: hay ${activo.stock} y se piden ${cantidad}.`);
+      await activos.setStock(id, nuevo, client);
+      await activos.insertMovimiento({ activoId: id, tipo, cantidad, usuarioId: user.id, nota }, client);
+    });
   },
 };

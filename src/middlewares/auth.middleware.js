@@ -1,9 +1,9 @@
+// Exige sesión iniciada. Si no hay, manda al login recordando a dónde iba.
 module.exports = function requireAuth(req, res, next) {
-  const user = req.session?.user;
-  if (!user || !Number.isInteger(Number(user.id))) {
-    return res.status(401).send('Inicia sesión para continuar.');
+  if (req.session && req.session.user) {
+    req.user = req.session.user;
+    return next();
   }
-
-  req.user = user;
-  next();
+  if (req.method === 'GET') req.session.returnTo = req.originalUrl;
+  return res.redirect('/login');
 };

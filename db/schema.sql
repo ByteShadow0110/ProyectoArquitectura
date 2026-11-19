@@ -66,8 +66,8 @@ CREATE TABLE solicitudes (
   solicitante_id INT NOT NULL REFERENCES personas(id),
   estado VARCHAR(12) NOT NULL DEFAULT 'pendiente'
     CHECK (estado IN ('pendiente','aprobada','rechazada')),
-  motivo TEXT,
-  motivo_resolucion TEXT,
+  motivo TEXT,                                   -- por qué se solicita
+  motivo_resolucion TEXT,                        -- por qué se rechazó (obligatorio al rechazar)
   resuelta_por INT REFERENCES usuarios(id),
   creado_en TIMESTAMPTZ NOT NULL DEFAULT now(),
   resuelta_en TIMESTAMPTZ
