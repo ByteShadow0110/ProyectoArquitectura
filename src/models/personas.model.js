@@ -77,7 +77,7 @@ module.exports = {
 
   async listSimple() {
     const { rows } = await db.query(
-      `SELECT p.id, p.nombre, p.apellidos, a.nombre AS area
+      `SELECT p.id, p.nombre, p.apellidos, p.area_id, a.nombre AS area
          FROM personas p LEFT JOIN areas a ON a.id = p.area_id
         WHERE p.activo = TRUE ORDER BY p.apellidos, p.nombre`
     );
@@ -89,14 +89,14 @@ module.exports = {
     return rows;
   },
 
-  // Activos que la persona tiene hoy (se llenará en el Sprint 2 con las asignaciones).
+  // Activos que la persona tiene hoy y su historial (fecha_devolucion NULL = vigente).
   async listAsignaciones(personaId) {
     const { rows } = await db.query(
-      `SELECT a.id AS asignacion_id, ac.codigo, ac.nombre, a.fecha_asignacion
+      `SELECT a.id AS asignacion_id, ac.id AS activo_id, ac.codigo, ac.nombre, a.fecha_asignacion, a.fecha_devolucion
          FROM asignaciones a
          JOIN activos ac ON ac.id = a.activo_id
-        WHERE a.persona_id = $1 AND a.fecha_devolucion IS NULL
-        ORDER BY a.fecha_asignacion DESC`,
+        WHERE a.persona_id = $1
+        ORDER BY (a.fecha_devolucion IS NULL) DESC, a.fecha_asignacion DESC`,
       [personaId]
     );
     return rows;

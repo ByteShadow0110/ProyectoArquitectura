@@ -1,0 +1,28 @@
+<%- include('../../partials/layout-start') %>
+<%
+  const v = (k) => (solicitud && solicitud[k] != null ? solicitud[k] : '');
+  const cls = (k) => (errors[k] ? 'invalid' : '');
+%>
+<a class="back" href="/solicitudes"><%- icon('back', 'sm') %>Cancelar</a>
+<form class="card" method="post" action="/solicitudes" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <% if (errorMessage) { %><div class="alert error" role="alert"><%- icon('error') %><span><%= errorMessage %></span></div><% } %>
+  <div class="form-grid">
+    <div class="field"><label for="activo_id">Activo *</label>
+      <select id="activo_id" name="activo_id" class="<%= cls('activo_id') %>" required>
+        <option value="">Selecciona…</option>
+        <% activos.forEach(a => { %><option value="<%= a.id %>" <%= String(v('activo_id')) === String(a.id) ? 'selected' : '' %>><%= a.nombre %> (<%= a.codigo %>)</option><% }) %>
+      </select>
+      <div class="hint">Solo herramientas y equipos disponibles.</div>
+      <% if (errors.activo_id) { %><div class="err"><%= errors.activo_id %></div><% } %></div>
+    <div class="field"><label for="motivo">Motivo *</label>
+      <input id="motivo" name="motivo" class="<%= cls('motivo') %>" value="<%= v('motivo') %>" maxlength="300" required>
+      <% if (errors.motivo) { %><div class="err"><%= errors.motivo %></div><% } %></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn" type="submit"><%- icon('check', 'sm') %>Enviar solicitud</button>
+    <a class="btn sec" href="/solicitudes">Cancelar</a>
+  </div>
+  <p class="hint">* Campo obligatorio. Un supervisor aprobará o rechazará tu solicitud.</p>
+</form>
+<%- include('../../partials/layout-end') %>

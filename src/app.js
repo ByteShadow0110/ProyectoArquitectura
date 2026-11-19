@@ -56,7 +56,9 @@ app.use('/', require('./routes/auth.routes'));
 app.use('/', require('./routes/dashboard.routes'));
 app.use('/usuarios', require('./routes/usuarios.routes'));
 app.use('/personas', require('./routes/personas.routes'));
-// Sprint 2+: activos, solicitudes · Sprint 3: reportes
+app.use('/activos', require('./routes/activos.routes'));
+app.use('/solicitudes', require('./routes/solicitudes.routes'));
+// Sprint 3: reportes
 
 app.use(notFound);
 app.use(errorHandler);

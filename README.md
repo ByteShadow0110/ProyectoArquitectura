@@ -6,7 +6,8 @@ Actividad Integradora – Arquitectura de Software 5B · Node.js (Express) · MV
 ## Estado
 - **Sprint 0:** requisitos, arquitectura y maqueta UI/UX (`prototype/index.html`).
 - **Sprint 1:** interfaz base, autenticación y roles, módulo Personas. ✅
-- Siguiente: Sprint 2 (activos, asignaciones y solicitudes).
+- **Sprint 2:** módulo Activos (T7), asignaciones y solicitudes (T8), vistas y navegación de los módulos (T9). ✅
+- Siguiente: Sprint 3 (dashboard completo, reportes y pruebas).
 
 ## Estructura
 ```
@@ -50,6 +51,17 @@ Usuarios creados por `db/seeds/01_seed.sql` (solo desarrollo; la contraseña de 
 | admin@tienda.com | Administrador |
 | ana.torres@tienda.com | Supervisor (área Taller) |
 | luis.ramos@tienda.com | Operativo |
+
+## Módulos del Sprint 2
+| Ruta | Quién | Qué hace |
+|------|-------|----------|
+| `/activos` | todos consultan; admin/supervisor gestionan | Listado con filtros (SKU, tipo, estado), alta/edición/baja lógica, alerta de stock bajo |
+| `/activos/:id` | todos | Detalle, asignación vigente y bitácora de movimientos |
+| `/activos/:id/asignar` y `/devolver` | admin/supervisor | Asignar herramientas/equipos disponibles a una persona (el supervisor, solo de su área) y devolverlos |
+| `/activos/:id/movimiento` | admin/supervisor | Entradas, salidas y ajustes de stock de refacciones (nunca negativo) |
+| `/solicitudes` | operativo ve las suyas; admin/supervisor todas | Solicitar un activo; aprobar (crea la asignación) o rechazar con motivo obligatorio |
+
+Las asignaciones, aprobaciones y movimientos de stock se ejecutan en transacción con bloqueo de fila. El esquema (`db/schema.sql`) añade `solicitudes.motivo_resolucion`; para aplicarlo reinicia la BD con `docker compose down -v && docker compose up -d`.
 
 ## Seguridad aplicada
 Contraseñas con bcrypt, sesiones en PostgreSQL con cookie `httpOnly`, token CSRF en formularios, consultas parametrizadas, escape de salida en EJS, cabeceras con Helmet (CSP), límite de intentos de inicio de sesión y autorización por rol en el servidor.

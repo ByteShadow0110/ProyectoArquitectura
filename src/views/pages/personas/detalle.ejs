@@ -28,14 +28,26 @@
 
   <div class="card">
     <h2>Activos asignados</h2>
-    <% if (!asignaciones.length) { %>
+    <% const vigentes = asignaciones.filter(a => !a.fecha_devolucion); const historial = asignaciones.filter(a => a.fecha_devolucion); %>
+    <% if (!vigentes.length) { %>
       <p class="hint">Esta persona no tiene activos asignados.</p>
     <% } else { %>
     <div class="table-wrap"><table class="table-stack">
       <thead><tr><th>Código</th><th>Activo</th><th>Desde</th></tr></thead>
       <tbody>
-        <% asignaciones.forEach(a => { %>
-          <tr><td data-label="Código"><%= a.codigo %></td><td data-label="Activo"><%= a.nombre %></td><td data-label="Desde"><%= fmtDate(a.fecha_asignacion) %></td></tr>
+        <% vigentes.forEach(a => { %>
+          <tr><td data-label="Código"><%= a.codigo %></td><td data-label="Activo"><a href="/activos/<%= a.activo_id %>"><%= a.nombre %></a></td><td data-label="Desde"><%= fmtDate(a.fecha_asignacion) %></td></tr>
+        <% }) %>
+      </tbody>
+    </table></div>
+    <% } %>
+    <% if (historial.length) { %>
+    <h2 style="margin-top:16px">Historial de asignaciones</h2>
+    <div class="table-wrap"><table class="table-stack">
+      <thead><tr><th>Código</th><th>Activo</th><th>Desde</th><th>Devuelto</th></tr></thead>
+      <tbody>
+        <% historial.forEach(a => { %>
+          <tr><td data-label="Código"><%= a.codigo %></td><td data-label="Activo"><a href="/activos/<%= a.activo_id %>"><%= a.nombre %></a></td><td data-label="Desde"><%= fmtDate(a.fecha_asignacion) %></td><td data-label="Devuelto"><%= fmtDate(a.fecha_devolucion) %></td></tr>
         <% }) %>
       </tbody>
     </table></div>

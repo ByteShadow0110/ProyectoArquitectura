@@ -1,0 +1,60 @@
+<%- include('../../partials/layout-start') %>
+<%
+  const ESTADO = { pendiente: ['b-warn', 'Pendiente'], aprobada: ['b-ok', 'Aprobada'], rechazada: ['b-bad', 'Rechazada'] };
+  const TABS = [['pendiente', 'Pendientes'], ['aprobada', 'Aprobadas'], ['rechazada', 'Rechazadas'], ['todas', 'Todas']];
+  const qs = (p) => '/solicitudes?estado=' + filters.estado + (p > 1 ? '&page=' + p : '');
+  const fmtDT = (d) => { const x = new Date(d); return isNaN(x) ? '—' : fmtDate(x.toISOString()); };
+%>
+<div class="card">
+  <form class="toolbar" method="get" action="/solicitudes">
+    <select name="estado" aria-label="Estado">
+      <% TABS.forEach(t => { %><option value="<%= t[0] %>" <%= filters.estado === t[0] ? 'selected' : '' %>><%= t[1] %></option><% }) %>
+    </select>
+    <button class="btn sec" type="submit"><%- icon('search', 'sm') %>Filtrar</button>
+    <a class="btn" href="/solicitudes/nueva"><%- icon('add', 'sm') %>Nueva solicitud</a>
+  </form>
+
+  <div class="table-wrap"><table class="table-stack">
+    <thead><tr><th>Fecha</th><th>Solicitante</th><th>Activo</th><th>Motivo</th><th>Estado</th><% if (canManage) { %><th>Acción</th><% } %></tr></thead>
+    <tbody>
+      <% if (!rows.length) { %>
+        <tr><td colspan="<%= canManage ? 6 : 5 %>" class="empty row-empty">No hay solicitudes con ese filtro.</td></tr>
+      <% } %>
+      <% rows.forEach(s => { %>
+        <tr>
+          <td data-label="Fecha"><%= fmtDT(s.creado_en) %></td>
+          <td data-label="Solicitante"><%= s.solicitante %></td>
+          <td data-label="Activo"><a href="/activos/<%= s.activo_id %>"><%= s.activo %></a> <small>(<%= s.codigo %>)</small></td>
+          <td data-label="Motivo"><%= s.motivo || '—' %><% if (s.estado === 'rechazada' && s.motivo_resolucion) { %><br><small>Rechazo: <%= s.motivo_resolucion %></small><% } %></td>
+          <td data-label="Estado"><span class="badge <%= ESTADO[s.estado][0] %>"><%= ESTADO[s.estado][1] %></span></td>
+          <% if (canManage) { %>
+          <td data-label="Acción">
+            <% if (s.estado === 'pendiente') { %>
+            <div class="actions">
+              <form class="inline-form" method="post" action="/solicitudes/<%= s.id %>/aprobar" data-confirm="¿Aprobar y asignar el activo?">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn sm ok" type="submit"><%- icon('check', 'sm') %>Aprobar</button>
+              </form>
+              <form class="inline-form" method="post" action="/solicitudes/<%= s.id %>/rechazar">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input name="motivo" placeholder="Motivo del rechazo" maxlength="300" required aria-label="Motivo del rechazo">
+                <button class="btn sm bad" type="submit"><%- icon('close', 'sm') %>Rechazar</button>
+              </form>
+            </div>
+            <% } else { %>—<% } %>
+          </td>
+          <% } %>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table></div>
+
+  <div class="pager">
+    <span><%= total %> resultado<%= total === 1 ? '' : 's' %> · página <%= page %> de <%= pages %></span>
+    <span class="btn-row" style="margin:0">
+      <a class="btn sec sm <%= page <= 1 ? 'disabled' : '' %>" href="<%= qs(page - 1) %>">Anterior</a>
+      <a class="btn sec sm <%= page >= pages ? 'disabled' : '' %>" href="<%= qs(page + 1) %>">Siguiente</a>
+    </span>
+  </div>
+</div>
+<%- include('../../partials/layout-end') %>

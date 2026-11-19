@@ -1,0 +1,96 @@
+<%- include('../../partials/layout-start') %>
+<%
+  const TIPO = { refaccion: 'Refacción', herramienta: 'Herramienta', equipo: 'Equipo' };
+  const ESTADO = { disponible: ['b-ok', 'Disponible'], asignado: ['b-info', 'Asignado'], mantenimiento: ['b-warn', 'Mantenimiento'], baja: ['b-mute', 'Baja'] };
+  const MOV = { entrada: 'Entrada', salida: 'Salida', asignacion: 'Asignación', devolucion: 'Devolución', ajuste: 'Ajuste' };
+  const fmtDT = (d) => { const x = new Date(d); return isNaN(x) ? '—' : fmtDate(x.toISOString()); };
+  const esRef = activo.tipo === 'refaccion';
+%>
+<a class="back" href="/activos"><%- icon('back', 'sm') %>Volver a activos</a>
+<div class="grid g2">
+  <div class="card">
+    <h2><%= activo.nombre %></h2>
+    <dl class="dl">
+      <dt>SKU</dt><dd><%= activo.codigo %></dd>
+      <dt>Categoría</dt><dd><%= activo.categoria %> · <%= TIPO[activo.tipo] %></dd>
+      <dt>Estado</dt><dd><span class="badge <%= ESTADO[activo.estado][0] %>"><%= ESTADO[activo.estado][1] %></span></dd>
+      <% if (esRef) { %>
+      <dt>Stock</dt><dd><span class="badge <%= activo.stock <= activo.stock_minimo ? 'b-bad' : 'b-ok' %>"><%= activo.stock %></span> (mínimo <%= activo.stock_minimo %>)</dd>
+      <dt>Compatibles</dt><dd><%= activo.modelos_compatibles || '—' %></dd>
+      <% } %>
+      <dt>Costo</dt><dd><%= activo.costo != null ? '$' + Number(activo.costo).toFixed(2) + ' MXN' : '—' %></dd>
+      <% if (asignacion) { %><dt>Asignado a</dt><dd><a href="/personas/<%= asignacion.persona_id %>"><%= asignacion.nombre %> <%= asignacion.apellidos %></a> desde <%= fmtDT(asignacion.fecha_asignacion) %></dd><% } %>
+    </dl>
+    <% if (canManage) { %>
+    <div class="btn-row">
+      <a class="btn sec" href="/activos/<%= activo.id %>/editar"><%- icon('edit', 'sm') %>Editar</a>
+      <form class="inline-form" method="post" action="/activos/<%= activo.id %>/baja"
+            data-confirm="<%= activo.activo ? '¿Dar de baja este activo?' : '¿Reactivar este activo?' %>">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="btn <%= activo.activo ? 'bad' : 'ok' %>" type="submit">
+          <%- icon(activo.activo ? 'block' : 'refresh', 'sm') %><%= activo.activo ? 'Dar de baja' : 'Reactivar' %>
+        </button>
+      </form>
+    </div>
+    <% } %>
+  </div>
+
+  <% if (canManage && activo.activo) { %>
+  <div class="card">
+    <% if (esRef) { %>
+      <h2>Movimiento de stock</h2>
+      <form method="post" action="/activos/<%= activo.id %>/movimiento">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="form-grid">
+          <div class="field"><label for="tipo">Tipo</label>
+            <select id="tipo" name="tipo"><option value="entrada">Entrada</option><option value="salida">Salida</option><option value="ajuste">Ajuste (nuevo stock total)</option></select></div>
+          <div class="field"><label for="cantidad">Cantidad</label><input id="cantidad" name="cantidad" type="number" min="0" step="1" required></div>
+        </div>
+        <div class="field"><label for="nota">Nota (obligatoria en ajustes)</label><input id="nota" name="nota" maxlength="300"></div>
+        <button class="btn" type="submit"><%- icon('check', 'sm') %>Registrar</button>
+      </form>
+    <% } else if (asignacion) { %>
+      <h2>Devolución</h2>
+      <p class="hint">Asignado a <%= asignacion.nombre %> <%= asignacion.apellidos %>.</p>
+      <form method="post" action="/activos/<%= activo.id %>/devolver">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="field"><label for="nota">Nota</label><input id="nota" name="nota" maxlength="300"></div>
+        <button class="btn ok" type="submit"><%- icon('refresh', 'sm') %>Registrar devolución</button>
+      </form>
+    <% } else if (activo.estado === 'disponible') { %>
+      <h2>Asignar a persona</h2>
+      <form method="post" action="/activos/<%= activo.id %>/asignar">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="field"><label for="persona_id">Persona</label>
+          <select id="persona_id" name="persona_id" required>
+            <option value="">Selecciona…</option>
+            <% personasOpciones.forEach(p => { %><option value="<%= p.id %>"><%= p.nombre %> <%= p.apellidos %><%= p.area ? ' · ' + p.area : '' %></option><% }) %>
+          </select></div>
+        <div class="field"><label for="nota">Nota</label><input id="nota" name="nota" maxlength="300"></div>
+        <button class="btn ok" type="submit"><%- icon('assign', 'sm') %>Asignar</button>
+      </form>
+    <% } else { %>
+      <h2>Asignación</h2>
+      <p class="hint">Solo los activos disponibles pueden asignarse (estado actual: <%= ESTADO[activo.estado][1].toLowerCase() %>).</p>
+    <% } %>
+  </div>
+  <% } %>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <h2>Bitácora de movimientos</h2>
+  <% if (!movimientos.length) { %>
+    <p class="hint">Aún no hay movimientos registrados.</p>
+  <% } else { %>
+  <div class="table-wrap"><table class="table-stack">
+    <thead><tr><th>Fecha</th><th>Tipo</th><th>Cant.</th><th>Usuario</th><th>Nota</th></tr></thead>
+    <tbody>
+      <% movimientos.forEach(m => { %>
+        <tr><td data-label="Fecha"><%= fmtDT(m.creado_en) %></td><td data-label="Tipo"><%= MOV[m.tipo] %></td><td data-label="Cant."><%= m.cantidad %></td>
+          <td data-label="Usuario"><%= m.usuario || '—' %></td><td data-label="Nota"><%= m.nota || '—' %></td></tr>
+      <% }) %>
+    </tbody>
+  </table></div>
+  <% } %>
+</div>
+<%- include('../../partials/layout-end') %>

@@ -15,7 +15,7 @@ describe('app (HTTP)', () => {
   });
 
   test('rutas protegidas redirigen al login sin sesión', async () => {
-    for (const url of ['/dashboard', '/personas', '/personas/nueva', '/usuarios']) {
+    for (const url of ['/dashboard', '/personas', '/personas/nueva', '/usuarios', '/activos', '/activos/nuevo', '/solicitudes', '/solicitudes/nueva']) {
       const res = await request(app).get(url);
       expect(res.status).toBe(302);
       expect(res.headers.location).toBe('/login');

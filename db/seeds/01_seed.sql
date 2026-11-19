@@ -25,3 +25,30 @@ INSERT INTO usuarios (persona_id, correo, password_hash, rol_id) VALUES
   ((SELECT id FROM personas WHERE correo='admin@tienda.com'),      'admin@tienda.com',      crypt('Refacciones2026!', gen_salt('bf', 10)), (SELECT id FROM roles WHERE nombre='admin')),
   ((SELECT id FROM personas WHERE correo='ana.torres@tienda.com'), 'ana.torres@tienda.com', crypt('Refacciones2026!', gen_salt('bf', 10)), (SELECT id FROM roles WHERE nombre='supervisor')),
   ((SELECT id FROM personas WHERE correo='luis.ramos@tienda.com'), 'luis.ramos@tienda.com', crypt('Refacciones2026!', gen_salt('bf', 10)), (SELECT id FROM roles WHERE nombre='operativo'));
+
+-- Sprint 2: activos de ejemplo
+INSERT INTO activos (codigo, nombre, categoria_id, estado, stock, stock_minimo, modelos_compatibles, costo) VALUES
+  ('PAN-IP11', 'Pantalla iPhone 11',     (SELECT id FROM categorias WHERE nombre='Pantallas'),            'disponible', 2, 5, 'iPhone 11', 850.00),
+  ('BAT-A32',  'Batería Galaxy A32',     (SELECT id FROM categorias WHERE nombre='Baterías'),             'disponible', 1, 4, 'Galaxy A32', 280.00),
+  ('PAN-A54',  'Pantalla Galaxy A54',    (SELECT id FROM categorias WHERE nombre='Pantallas'),            'disponible', 12, 5, 'Galaxy A54', 1100.00),
+  ('FLX-IP12', 'Flex de carga iPhone 12', (SELECT id FROM categorias WHERE nombre='Flex y conectores'),   'disponible', 9, 3, 'iPhone 12, iPhone 12 Pro', 190.00);
+INSERT INTO activos (codigo, nombre, categoria_id, estado, costo) VALUES
+  ('HER-014', 'Estación de calor',    (SELECT id FROM categorias WHERE nombre='Herramienta de taller'), 'asignado',      3200.00),
+  ('HER-021', 'Microscopio',          (SELECT id FROM categorias WHERE nombre='Herramienta de taller'), 'mantenimiento', 5400.00),
+  ('HER-030', 'Kit de destornilladores', (SELECT id FROM categorias WHERE nombre='Herramienta de taller'), 'disponible',  450.00),
+  ('EQ-003',  'Laptop de taller',     (SELECT id FROM categorias WHERE nombre='Equipo de cómputo'),     'disponible',    12500.00);
+
+-- Una asignación vigente (HER-014 -> Ana Torres) y su bitácora
+INSERT INTO asignaciones (activo_id, persona_id, asignado_por) VALUES
+  ((SELECT id FROM activos WHERE codigo='HER-014'), (SELECT id FROM personas WHERE correo='ana.torres@tienda.com'),
+   (SELECT id FROM usuarios WHERE correo='ana.torres@tienda.com'));
+INSERT INTO movimientos (activo_id, tipo, cantidad, usuario_id, nota) VALUES
+  ((SELECT id FROM activos WHERE codigo='PAN-IP11'), 'entrada', 2, (SELECT id FROM usuarios WHERE correo='admin@tienda.com'), 'Stock inicial'),
+  ((SELECT id FROM activos WHERE codigo='HER-014'), 'asignacion', 1, (SELECT id FROM usuarios WHERE correo='ana.torres@tienda.com'), 'Asignado a Ana Torres Díaz');
+
+-- Solicitudes de ejemplo: pendiente, aprobada y rechazada
+INSERT INTO solicitudes (activo_id, solicitante_id, estado, motivo, motivo_resolucion, resuelta_por, resuelta_en) VALUES
+  ((SELECT id FROM activos WHERE codigo='HER-030'), (SELECT id FROM personas WHERE correo='luis.ramos@tienda.com'), 'pendiente',
+   'Reparación de placa', NULL, NULL, NULL),
+  ((SELECT id FROM activos WHERE codigo='HER-021'), (SELECT id FROM personas WHERE correo='pedro.ruiz@tienda.com'), 'rechazada',
+   'Inventario', 'El microscopio está en mantenimiento', (SELECT id FROM usuarios WHERE correo='ana.torres@tienda.com'), now());
