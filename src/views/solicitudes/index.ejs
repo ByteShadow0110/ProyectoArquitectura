@@ -1,0 +1,55 @@
+<%- include('../partials/header', { title: 'Solicitudes de activos', user }) %>
+<div class="page-actions">
+  <p>Solicitudes de herramientas y equipos.</p>
+  <form method="get" action="/solicitudes" class="inline">
+    <label class="sr-only" for="estado">Filtrar por estado</label>
+    <select id="estado" name="estado">
+      <% [['pendiente','Pendientes'], ['aprobada','Aprobadas'], ['rechazada','Rechazadas'], ['todas','Todas']].forEach(([value, label]) => { %>
+        <option value="<%= value %>" <%= estado === value ? 'selected' : '' %>><%= label %></option>
+      <% }); %>
+    </select>
+    <button class="button secondary" type="submit">Ver</button>
+  </form>
+</div>
+<form class="card form request-form" method="post" action="/solicitudes">
+  <h2>Nueva solicitud</h2>
+  <% if (assets.length) { %>
+    <div class="form-grid">
+      <label>Activo *
+        <select name="activo_id" required>
+          <% assets.forEach(asset => { %><option value="<%= asset.id %>"><%= asset.codigo %> · <%= asset.nombre %></option><% }); %>
+        </select>
+      </label>
+      <label>Motivo *
+        <input name="motivo" minlength="3" maxlength="1000" required placeholder="¿Para qué necesitas el activo?">
+      </label>
+    </div>
+    <button class="button primary" type="submit">Enviar solicitud</button>
+  <% } else { %><p class="empty">No hay activos disponibles para solicitar.</p><% } %>
+</form>
+<div class="card table-wrap">
+  <table>
+    <thead><tr><th>Fecha</th><th>Solicitante</th><th>Activo</th><th>Motivo</th><th>Estado</th><th>Acción</th></tr></thead>
+    <tbody>
+      <% requests.forEach(request => { %>
+        <tr>
+          <td><%= new Date(request.creado_en).toLocaleDateString('es-MX') %></td>
+          <td><%= request.solicitante %></td><td><%= request.activo %></td>
+          <td><%= request.motivo %><% if (request.motivo_resolucion) { %><small class="muted">Rechazo: <%= request.motivo_resolucion %></small><% } %></td>
+          <td><span class="badge <%= request.estado %>"><%= request.estado %></span></td>
+          <td>
+            <% if (request.estado === 'pendiente' && ['admin', 'supervisor'].includes(user.rol)) { %>
+              <form class="decision-form" method="post" action="/solicitudes/<%= request.id %>/resolver">
+                <button class="button primary small" name="decision" value="aprobada" type="submit">Aprobar</button>
+                <input name="motivo" minlength="3" maxlength="1000" placeholder="Motivo si rechazas" aria-label="Motivo de rechazo">
+                <button class="button danger small" name="decision" value="rechazada" type="submit">Rechazar</button>
+              </form>
+            <% } else if (request.resuelto_por) { %><span class="muted">Resuelta por <%= request.resuelto_por %></span><% } else { %>—<% } %>
+          </td>
+        </tr>
+      <% }); %>
+      <% if (!requests.length) { %><tr><td colspan="6" class="empty">No hay solicitudes para este filtro.</td></tr><% } %>
+    </tbody>
+  </table>
+</div>
+<%- include('../partials/footer') %>

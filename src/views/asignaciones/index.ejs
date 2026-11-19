@@ -1,0 +1,28 @@
+<%- include('../partials/header', { title: 'Asignaciones activas', user }) %>
+<div class="page-actions">
+  <p>Activos entregados y pendientes de devolución.</p>
+  <% if (['admin', 'supervisor'].includes(user.rol)) { %><a class="button primary" href="/asignaciones/nueva">+ Nueva asignación</a><% } %>
+</div>
+<div class="card table-wrap">
+  <table>
+    <thead><tr><th>Activo</th><th>Código</th><th>Persona</th><th>Fecha de asignación</th><th></th></tr></thead>
+    <tbody>
+      <% assignments.forEach(assignment => { %>
+        <tr>
+          <td><a href="/activos/<%= assignment.activo_id %>"><%= assignment.activo %></a></td>
+          <td><%= assignment.codigo %></td><td><%= assignment.persona %></td>
+          <td><%= new Date(assignment.fecha_asignacion).toLocaleString('es-MX') %></td>
+          <td>
+            <% if (['admin', 'supervisor'].includes(user.rol)) { %>
+              <form method="post" action="/asignaciones/<%= assignment.id %>/devolver" onsubmit="return confirm('¿Registrar la devolución?')">
+                <button class="button secondary small" type="submit">Devolver</button>
+              </form>
+            <% } %>
+          </td>
+        </tr>
+      <% }); %>
+      <% if (!assignments.length) { %><tr><td colspan="5" class="empty">No hay asignaciones activas.</td></tr><% } %>
+    </tbody>
+  </table>
+</div>
+<%- include('../partials/footer') %>
