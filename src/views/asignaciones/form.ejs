@@ -1,5 +1,6 @@
 <%- include('../partials/header', { title: 'Nueva asignación', user }) %>
 <form class="card form narrow" method="post" action="/asignaciones">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <% if (!assets.length || !people.length) { %>
     <p class="empty">Se necesita al menos un activo disponible y una persona activa para crear una asignación.</p>
   <% } else { %>

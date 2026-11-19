@@ -12,15 +12,15 @@ describe('auth.middleware', () => {
     expect(next).toHaveBeenCalledTimes(1);
   });
 
-  test('rechaza solicitudes sin sesión de usuario', () => {
-    const req = { session: {} };
-    const res = { status: jest.fn().mockReturnThis(), send: jest.fn() };
+  test('redirige al login y recuerda la ruta solicitada cuando no hay sesión', () => {
+    const req = { session: {}, method: 'GET', originalUrl: '/activos' };
+    const res = { redirect: jest.fn() };
     const next = jest.fn();
 
     requireAuth(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.send).toHaveBeenCalledWith('Inicia sesión para continuar.');
+    expect(req.session.returnTo).toBe('/activos');
+    expect(res.redirect).toHaveBeenCalledWith('/login');
     expect(next).not.toHaveBeenCalled();
   });
 });

@@ -3,96 +3,90 @@ jest.mock('../../src/config/db');
 const db = require('../../src/config/db');
 const activos = require('../../src/models/activos.model');
 const asignaciones = require('../../src/models/asignaciones.model');
-const solicitudes = require('../../src/models/solicitudes.model');
+const serviceSolicitudes = require('../../src/services/solicitudes.service');
+const serviceActivos = require('../../src/services/activos.service');
 
+const admin = { id: 1, rol: 'admin', personaId: 1 };
 let client;
 
 beforeEach(() => {
   jest.clearAllMocks();
   client = { query: jest.fn() };
-  db.transaction.mockImplementation(callback => callback(client));
+  db.withTransaction.mockImplementation((fn) => fn(client));
+  db.transaction.mockImplementation((fn) => fn(client));
 });
 
-describe('transacciones de los modelos', () => {
-  test('actualiza stock y registra salida y auditoría en la misma transacción', async () => {
-    client.query
-      .mockResolvedValueOnce({ rows: [{ estado: 'disponible', stock: 5, categoria_id: 1 }] })
-      .mockResolvedValueOnce({ rows: [{ id: 5 }] })
-      .mockResolvedValue({ rows: [] });
+describe('transacciones de los módulos', () => {
+  test('alta de activo y movimiento inicial usan el mismo cliente transaccional', async () => {
+    db.query.mockImplementation(async (sql) => {
+      if (sql.includes('lower(codigo)')) return { rows: [] };
+      if (sql.includes('FROM categorias')) return { rows: [{ id: 1, tipo: 'refaccion' }] };
+      return { rows: [] };
+    });
+    client.query.mockImplementation(async (sql) => (
+      sql.includes('INSERT INTO activos') ? { rows: [{ id: 5 }] } : { rows: [] }
+    ));
 
-    await activos.update(5, {
-      codigo: 'PAN-11',
-      nombre: 'Pantalla iPhone 11',
-      categoria_id: 1,
-      estado: 'disponible',
-      stock: 3,
-      stock_minimo: 1,
-      modelos_compatibles: null,
-      costo: null,
-    }, 1);
+    await serviceActivos.create(admin, {
+      codigo: 'PAN-11', nombre: 'Pantalla', categoria_id: '1', stock: '3',
+    });
 
-    expect(db.transaction).toHaveBeenCalledTimes(1);
+    expect(db.withTransaction).toHaveBeenCalledTimes(1);
     expect(client.query).toHaveBeenCalledWith(
-      expect.stringContaining('SET codigo = $2'),
-      expect.arrayContaining([5, 'PAN-11', 'Pantalla iPhone 11'])
+      expect.stringContaining('INSERT INTO activos'),
+      ['PAN-11', 'Pantalla', 1, 3, 0, null, null]
     );
     expect(client.query).toHaveBeenCalledWith(
-      expect.stringContaining("'Ajuste de stock'"),
-      [5, 'salida', 2, 1]
-    );
-    expect(client.query).toHaveBeenCalledWith(
-      expect.stringContaining("'Datos del activo actualizados'"),
-      [5, 1]
+      expect.stringContaining('INSERT INTO movimientos'),
+      [5, 'entrada', 3, 1, 'Stock inicial']
     );
   });
 
-  test('aprobación crea asignación, cambia estado y bitácora dentro de la transacción', async () => {
-    client.query.mockImplementation(async sql => {
-      if (sql.includes('SELECT id, activo_id, solicitante_id, estado')) {
-        return { rows: [{ id: 12, activo_id: 8, solicitante_id: 1, estado: 'pendiente' }] };
+  test('aprobar solicitud crea asignación, actualiza activo y bitácora en una transacción', async () => {
+    client.query.mockImplementation(async (sql) => {
+      if (sql.includes('FROM solicitudes s')) {
+        return { rows: [{ id: 12, activo_id: 8, solicitante_id: 2, solicitante: 'Ana Torres', estado: 'pendiente' }] };
       }
-      if (sql.includes('SELECT activo FROM personas')) return { rows: [{ activo: true }] };
-      if (sql.includes('SELECT a.estado, a.activo, c.tipo')) {
-        return { rows: [{ estado: 'disponible', activo: true, tipo: 'herramienta' }] };
+      if (sql.includes('FROM activos a')) {
+        return { rows: [{ id: 8, estado: 'disponible', activo: true, tipo: 'herramienta' }] };
       }
-      if (sql.includes('UPDATE solicitudes')) return { rows: [{ id: 12, estado: 'aprobada' }] };
+      if (sql.includes('INSERT INTO asignaciones')) return { rows: [{ id: 20 }] };
       return { rows: [] };
     });
 
-    await solicitudes.resolve(12, 1, 'aprobada', null);
+    await serviceSolicitudes.aprobar(admin, 12);
 
-    expect(db.transaction).toHaveBeenCalledTimes(1);
+    expect(db.withTransaction).toHaveBeenCalledTimes(1);
     expect(client.query).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO asignaciones'),
-      [12, 1]
+      [8, 2, 12, 1]
     );
     expect(client.query).toHaveBeenCalledWith(
-      expect.stringContaining("SET estado = 'asignado'"),
-      [8]
+      expect.stringContaining('UPDATE activos SET estado'),
+      [8, 'asignado']
     );
     expect(client.query).toHaveBeenCalledWith(
-      expect.stringContaining("'asignacion'"),
-      [8, 1, 'Asignación por solicitud #12']
+      expect.stringContaining('INSERT INTO movimientos'),
+      [8, 'asignacion', 1, 1, 'Solicitud #12 aprobada (Ana Torres)']
     );
   });
 
-  test('rechazo guarda el motivo sin sustituir el motivo de solicitud', async () => {
-    client.query.mockImplementation(async sql => {
-      if (sql.includes('SELECT id, activo_id, solicitante_id, estado')) {
-        return { rows: [{ id: 13, activo_id: 8, solicitante_id: 1, estado: 'pendiente' }] };
-      }
-      if (sql.includes('UPDATE solicitudes')) return { rows: [{ id: 13, estado: 'rechazada' }] };
-      return { rows: [] };
-    });
+  test('rechazar solicitud persiste el motivo en una transacción', async () => {
+    client.query.mockImplementation(async (sql) => (
+      sql.includes('FROM solicitudes s')
+        ? { rows: [{ id: 13, estado: 'pendiente' }] }
+        : { rows: [] }
+    ));
 
-    await solicitudes.resolve(13, 1, 'rechazada', 'Sin disponibilidad');
+    await serviceSolicitudes.rechazar(admin, 13, { motivo: 'Sin disponibilidad' });
 
+    expect(db.withTransaction).toHaveBeenCalledTimes(1);
     expect(client.query).toHaveBeenCalledWith(
       expect.stringContaining('motivo_resolucion'),
       [13, 'rechazada', 'Sin disponibilidad', 1]
     );
     expect(client.query).not.toHaveBeenCalledWith(
-      expect.stringContaining('SET estado = \'asignado\''),
+      expect.stringContaining('UPDATE activos SET estado'),
       expect.anything()
     );
   });

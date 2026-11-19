@@ -15,6 +15,7 @@
           <td>
             <% if (['admin', 'supervisor'].includes(user.rol)) { %>
               <form method="post" action="/asignaciones/<%= assignment.id %>/devolver" onsubmit="return confirm('¿Registrar la devolución?')">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <button class="button secondary small" type="submit">Devolver</button>
               </form>
             <% } %>
