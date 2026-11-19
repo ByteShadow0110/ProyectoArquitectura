@@ -1,14 +1,14 @@
 const express = require('express');
+const session = require('express-session');
 const path = require('path');
 const helmet = require('helmet');
-const session = require('express-session');
 const env = require('./config/env');
 const csrf = require('./middlewares/csrf.middleware');
 const flash = require('./middlewares/flash.middleware');
 const { notFound, errorHandler } = require('./middlewares/error.middleware');
 
 function buildSessionStore() {
-  if (env.isTest) return undefined; // MemoryStore en pruebas
+  if (env.isTest) return undefined;
   const PgStore = require('connect-pg-simple')(session);
   return new PgStore({ pool: require('./config/db').pool, createTableIfMissing: true });
 }
@@ -25,7 +25,6 @@ app.use(helmet({
 }));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
-
 app.use(session({
   store: buildSessionStore(),
   secret: env.sessionSecret,
@@ -36,11 +35,9 @@ app.use(session({
 app.use(flash);
 app.use(csrf);
 
-// Variables disponibles en todas las vistas
 app.use((req, res, next) => {
   res.locals.user = req.session.user || null;
   res.locals.path = req.path;
-  // Ícono del sprite (views/partials/icons.ejs). Solo recibe nombres fijos del código, nunca datos del usuario.
   res.locals.icon = (name, size = '') => `<svg class="icon ${size}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   res.locals.fmtDate = (d) => {
     if (!d) return '—';
@@ -57,8 +54,8 @@ app.use('/', require('./routes/dashboard.routes'));
 app.use('/usuarios', require('./routes/usuarios.routes'));
 app.use('/personas', require('./routes/personas.routes'));
 app.use('/activos', require('./routes/activos.routes'));
+app.use('/asignaciones', require('./routes/asignaciones.routes'));
 app.use('/solicitudes', require('./routes/solicitudes.routes'));
-// Sprint 3: reportes
 
 app.use(notFound);
 app.use(errorHandler);

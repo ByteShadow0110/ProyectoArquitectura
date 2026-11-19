@@ -1,0 +1,52 @@
+<%- include('../partials/header', { title: asset.id ? 'Editar activo' : 'Nuevo activo', user }) %>
+<form class="card form" method="post" action="<%= action %>">
+  <div class="form-grid">
+    <label>Código / SKU *
+      <input name="codigo" maxlength="40" required value="<%= asset.codigo || '' %>">
+    </label>
+    <label>Nombre *
+      <input name="nombre" maxlength="120" required value="<%= asset.nombre || '' %>">
+    </label>
+    <label>Categoría *
+      <select name="categoria_id" required>
+        <option value="">Selecciona una categoría</option>
+        <% categories.forEach(category => { %>
+          <option value="<%= category.id %>" <%= Number(asset.categoria_id) === category.id ? 'selected' : '' %>>
+            <%= category.nombre %> · <%= category.tipo %>
+          </option>
+        <% }); %>
+      </select>
+    </label>
+    <% if (asset.estado === 'asignado') { %>
+      <label>Estado
+        <input value="Asignado (gestiona la devolución para cambiarlo)" disabled>
+        <input name="estado" type="hidden" value="disponible">
+      </label>
+    <% } else { %>
+      <label>Estado
+        <select name="estado">
+          <option value="disponible" <%= !asset.estado || asset.estado === 'disponible' ? 'selected' : '' %>>Disponible</option>
+          <option value="mantenimiento" <%= asset.estado === 'mantenimiento' ? 'selected' : '' %>>Mantenimiento</option>
+        </select>
+      </label>
+    <% } %>
+    <label>Stock (solo refacciones)
+      <input name="stock" type="number" min="0" step="1" value="<%= asset.stock ?? 0 %>">
+    </label>
+    <label>Stock mínimo
+      <input name="stock_minimo" type="number" min="0" step="1" value="<%= asset.stock_minimo ?? 0 %>">
+    </label>
+    <label>Costo
+      <input name="costo" type="number" min="0" step="0.01" value="<%= asset.costo ?? '' %>">
+    </label>
+    <label class="wide">Modelos compatibles
+      <textarea name="modelos_compatibles" maxlength="1000" rows="3"><%= asset.modelos_compatibles || '' %></textarea>
+    </label>
+  </div>
+  <p class="help">Los activos asignados conservan su estado hasta que se registre su devolución.</p>
+  <div class="actions">
+    <a class="button secondary" href="<%= asset.id ? `/activos/${asset.id}` : '/activos' %>">Cancelar</a>
+    <button class="button primary" type="submit">Guardar activo</button>
+  </div>
+</form>
+<%- include('../partials/footer') %>

@@ -9,6 +9,8 @@ Actividad Integradora – Arquitectura de Software 5B · Node.js (Express) · MV
 - **Sprint 2:** módulo Activos (T7), asignaciones y solicitudes (T8), vistas y navegación de los módulos (T9). ✅
 - Siguiente: Sprint 3 (dashboard completo, reportes y pruebas).
 
+Los módulos de activos, asignaciones y solicitudes usan persistencia PostgreSQL y vistas EJS.
+
 ## Estructura
 ```
 src/
@@ -24,6 +26,12 @@ tests/           unit/ (servicios) e integration/ (HTTP)
 prototype/       maqueta HTML navegable
 ```
 Dependencia en una sola dirección: `Route → Controller → Service → Model → DB`.
+
+## Módulos T7–T9
+- Activos: búsqueda y filtros, alta/edición, baja lógica, stock y bitácora.
+- Asignaciones: asignación de herramientas/equipos disponibles y registro de devolución.
+- Solicitudes: creación por usuario autenticado y aprobación/rechazo por Admin o Supervisor.
+- Los flujos de asignación operan sobre categorías `herramienta` y `equipo`; las refacciones se gestionan por stock.
 
 ## Requisitos
 - [Node.js](https://nodejs.org) LTS

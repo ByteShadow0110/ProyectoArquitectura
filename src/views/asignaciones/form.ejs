@@ -1,0 +1,25 @@
+<%- include('../partials/header', { title: 'Nueva asignación', user }) %>
+<form class="card form narrow" method="post" action="/asignaciones">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <% if (!assets.length || !people.length) { %>
+    <p class="empty">Se necesita al menos un activo disponible y una persona activa para crear una asignación.</p>
+  <% } else { %>
+    <label>Activo disponible *
+      <select name="activo_id" required>
+        <% assets.forEach(asset => { %>
+          <option value="<%= asset.id %>" <%= String(asset.id) === String(selectedAssetId || '') ? 'selected' : '' %>><%= asset.codigo %> · <%= asset.nombre %></option>
+        <% }); %>
+      </select>
+    </label>
+    <label>Persona *
+      <select name="persona_id" required>
+        <% people.forEach(person => { %><option value="<%= person.id %>"><%= person.nombre %></option><% }); %>
+      </select>
+    </label>
+    <div class="actions">
+      <a class="button secondary" href="/asignaciones">Cancelar</a>
+      <button class="button primary" type="submit">Asignar activo</button>
+    </div>
+  <% } %>
+</form>
+<%- include('../partials/footer') %>
