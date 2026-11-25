@@ -56,6 +56,7 @@ app.use('/personas', require('./routes/personas.routes'));
 app.use('/activos', require('./routes/activos.routes'));
 app.use('/asignaciones', require('./routes/asignaciones.routes'));
 app.use('/solicitudes', require('./routes/solicitudes.routes'));
+app.use('/reportes', require('./routes/reportes.routes'));
 
 app.use(notFound);
 app.use(errorHandler);

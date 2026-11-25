@@ -1,29 +1,89 @@
 <%- include('../../partials/layout-start') %>
+<%
+  const fmtDateTime = (value) => {
+    if (!value) return '—';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '—' : `${fmtDate(date.toISOString())} ${date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}`;
+  };
+  const estados = { pendiente: ['b-warn', 'Pendiente'], aprobada: ['b-ok', 'Aprobada'], rechazada: ['b-bad', 'Rechazada'] };
+%>
 <div class="grid g4">
-  <div class="card kpi"><span class="ico c1"><%- icon('people', 'lg') %></span><div><div class="n"><%= personasActivas %></div><div class="l">Personas activas</div></div></div>
-  <div class="card kpi"><span class="ico c2"><%- icon('build', 'lg') %></span><div><div class="n"><%= activosTotal %></div><div class="l">Activos vigentes</div></div></div>
-  <div class="card kpi"><span class="ico c3"><%- icon('assign', 'lg') %></span><div><div class="n"><%= solicitudesPendientes %></div><div class="l">Solicitudes pendientes</div></div></div>
-  <div class="card kpi"><span class="ico c4"><%- icon('error', 'lg') %></span><div><div class="n"><%= stockBajo %></div><div class="l">Refacciones con stock bajo</div></div></div>
+  <div class="card kpi"><span class="ico c1"><%- icon('build', 'lg') %></span><div><div class="n"><%= metrics.disponibles %></div><div class="l">Activos disponibles</div></div></div>
+  <div class="card kpi"><span class="ico c2"><%- icon('assign', 'lg') %></span><div><div class="n"><%= metrics.asignados %></div><div class="l">Activos asignados</div></div></div>
+  <div class="card kpi"><span class="ico c3"><%- icon('build', 'lg') %></span><div><div class="n"><%= Number(metrics.unidadesStock).toLocaleString('es-MX') %></div><div class="l">Refacciones en stock</div></div></div>
+  <div class="card kpi"><span class="ico c4"><%- icon('error', 'lg') %></span><div><div class="n"><%= metrics.alertasStock %></div><div class="l">Alertas de stock bajo</div></div></div>
+  <div class="card kpi"><span class="ico c1"><%- icon('assign', 'lg') %></span><div><div class="n"><%= metrics.solicitudesPendientes %></div><div class="l">Solicitudes pendientes</div></div></div>
 </div>
+<% if (user.rol !== 'operativo') { %>
 <div class="grid g2" style="margin-top:16px">
-  <div class="card">
-    <h2>Bienvenido, <%= user.nombre %></h2>
-    <p>Consulta el inventario, asigna herramientas y gestiona solicitudes. Los reportes completos llegan en el Sprint 3.</p>
-    <div class="btn-row">
-      <a class="btn" href="/activos"><%- icon('build', 'sm') %>Ir a activos</a>
-      <a class="btn sec" href="/solicitudes"><%- icon('assign', 'sm') %>Solicitudes</a>
-      <a class="btn sec" href="/personas"><%- icon('people', 'sm') %>Personas</a>
+  <section class="card">
+    <div class="card-head"><h2>Stock bajo</h2><a href="/activos">Ver activos →</a></div>
+    <div class="table-wrap">
+      <table class="table-stack">
+        <thead><tr><th>SKU</th><th>Refacción</th><th>Stock</th><th>Mínimo</th></tr></thead>
+        <tbody>
+          <% if (!stockBajo.length) { %><tr><td class="empty row-empty" colspan="4">No hay alertas de stock bajo.</td></tr><% } %>
+          <% stockBajo.forEach((item) => { %>
+            <tr>
+              <td data-label="SKU"><a href="/activos/<%= item.id %>"><%= item.codigo %></a></td>
+              <td data-label="Refacción"><%= item.nombre %></td>
+              <td data-label="Stock"><span class="badge b-bad"><%= item.stock %></span></td>
+              <td data-label="Mínimo"><%= item.stock_minimo %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
     </div>
+  </section>
+  <section class="card">
+    <div class="card-head"><h2>Solicitudes recientes</h2><a href="/solicitudes">Ver solicitudes →</a></div>
+    <div class="table-wrap">
+      <table class="table-stack">
+        <thead><tr><th>Solicitante</th><th>Activo</th><th>Estado</th><th>Fecha</th></tr></thead>
+        <tbody>
+          <% if (!solicitudes.length) { %><tr><td class="empty row-empty" colspan="4">No hay solicitudes registradas.</td></tr><% } %>
+          <% solicitudes.forEach((solicitud) => { %>
+            <tr>
+              <td data-label="Solicitante"><%= solicitud.solicitante %></td>
+              <td data-label="Activo"><a href="/activos/<%= solicitud.activo_id %>"><%= solicitud.activo %></a></td>
+              <td data-label="Estado"><span class="badge <%= estados[solicitud.estado][0] %>"><%= estados[solicitud.estado][1] %></span></td>
+              <td data-label="Fecha"><%= fmtDateTime(solicitud.creado_en) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+<section class="card" style="margin-top:16px">
+  <div class="card-head"><h2>Movimientos recientes de bitácora</h2><% if (canReport) { %><a href="/reportes?tipo=movimientos">Ver reporte →</a><% } %></div>
+  <div class="table-wrap">
+    <table class="table-stack">
+      <thead><tr><th>Fecha</th><th>Activo</th><th>Movimiento</th><th>Cantidad</th><th>Usuario</th><th>Nota</th></tr></thead>
+      <tbody>
+        <% if (!movimientos.length) { %><tr><td class="empty row-empty" colspan="6">No hay movimientos registrados.</td></tr><% } %>
+        <% movimientos.forEach((movimiento) => { %>
+          <tr>
+            <td data-label="Fecha"><%= fmtDateTime(movimiento.creado_en) %></td>
+            <td data-label="Activo"><a href="/activos/<%= movimiento.activo_id %>"><%= movimiento.codigo %> · <%= movimiento.activo %></a></td>
+            <td data-label="Movimiento"><%= movimiento.tipo %></td>
+            <td data-label="Cantidad"><%= movimiento.cantidad %></td>
+            <td data-label="Usuario"><%= movimiento.usuario %></td>
+            <td data-label="Nota"><%= movimiento.nota || '—' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
   </div>
-  <% if (user.rol !== 'operativo') { %>
-  <div class="card">
-    <h2>Accesos rápidos</h2>
+</section>
+  <section class="card">
+    <div class="card-head"><h2>Accesos rápidos</h2></div>
     <div class="btn-row">
       <a class="btn sec" href="/activos/nuevo"><%- icon('add', 'sm') %>Nuevo activo</a>
       <a class="btn sec" href="/personas/nueva"><%- icon('add', 'sm') %>Nueva persona</a>
+      <a class="btn sec" href="/reportes"><%- icon('view', 'sm') %>Generar reporte</a>
       <% if (user.rol === 'admin') { %><a class="btn sec" href="/usuarios/nuevo"><%- icon('add', 'sm') %>Nuevo usuario</a><% } %>
     </div>
-  </div>
-  <% } %>
-</div>
+  </section>
+<% } %>
 <%- include('../../partials/layout-end') %>

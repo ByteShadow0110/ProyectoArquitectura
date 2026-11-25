@@ -1,0 +1,107 @@
+<%- include('../../partials/layout-start') %>
+<%
+  const statesLabels = {
+    disponible: 'Disponible', asignado: 'Asignado', mantenimiento: 'Mantenimiento', baja: 'Baja',
+    vigente: 'Vigente', devuelta: 'Devuelta',
+    entrada: 'Entrada', salida: 'Salida', asignacion: 'Asignación', devolucion: 'Devolución', ajuste: 'Ajuste',
+  };
+  const fmtValue = (value) => {
+    if (value == null || value === '') return '—';
+    if (value instanceof Date) return fmtDate(value.toISOString());
+    return value;
+  };
+%>
+<% if (!isPrint) { %>
+<section class="card no-print">
+  <h2>Generar reporte</h2>
+  <form class="toolbar report-filters" method="get" action="/reportes">
+    <label class="report-filter">Tipo de reporte
+      <select name="tipo">
+        <% Object.entries({
+          activos: 'Activos por estado', asignaciones: 'Asignaciones por persona',
+          movimientos: 'Movimientos por fecha', stock_bajo: 'Stock bajo',
+        }).forEach(([key, label]) => { %>
+          <option value="<%= key %>" <%= filters.tipo === key ? 'selected' : '' %>><%= label %></option>
+        <% }) %>
+      </select>
+    </label>
+    <label class="report-filter">Desde
+      <input type="date" name="desde" value="<%= filters.desde %>">
+    </label>
+    <label class="report-filter">Hasta
+      <input type="date" name="hasta" value="<%= filters.hasta %>">
+    </label>
+    <label class="report-filter">Categoría
+      <select name="categoria_id">
+        <option value="">Todas</option>
+        <% categories.forEach((category) => { %>
+          <option value="<%= category.id %>" <%= filters.categoriaId === category.id ? 'selected' : '' %>><%= category.nombre %></option>
+        <% }) %>
+      </select>
+    </label>
+    <% if (report.states.length) { %>
+      <label class="report-filter">Estado
+        <select name="estado">
+          <option value="">Todos</option>
+          <% report.states.forEach((state) => { %>
+            <option value="<%= state %>" <%= filters.estado === state ? 'selected' : '' %>><%= statesLabels[state] %></option>
+          <% }) %>
+        </select>
+      </label>
+    <% } %>
+    <% if (filters.tipo === 'activos' || filters.tipo === 'asignaciones' || filters.tipo === 'movimientos') { %>
+      <label class="report-filter">Persona
+        <select name="persona_id">
+          <option value="">Todas</option>
+          <% personas.forEach((person) => { %>
+            <option value="<%= person.id %>" <%= filters.personaId === person.id ? 'selected' : '' %>><%= person.nombre %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label class="report-filter">Área
+        <select name="area_id">
+          <option value="">Todas</option>
+          <% areas.forEach((area) => { %>
+            <option value="<%= area.id %>" <%= filters.areaId === area.id ? 'selected' : '' %>><%= area.nombre %></option>
+          <% }) %>
+        </select>
+      </label>
+    <% } %>
+    <button class="btn" type="submit"><%- icon('search', 'sm') %>Generar</button>
+  </form>
+</section>
+<% } %>
+<section class="card report-result">
+  <div class="card-head">
+    <div><h2><%= report.label %></h2><p class="hint"><%= report.rows.length %> resultado<%= report.rows.length === 1 ? '' : 's' %></p></div>
+    <% if (!isPrint) { %>
+      <div class="btn-row no-print" style="margin:0">
+        <a class="btn sec" href="<%= exportUrl %>">Descargar CSV</a>
+        <a class="btn sec" href="<%= printUrl %>" target="_blank" rel="noopener">Imprimir / Guardar PDF</a>
+      </div>
+    <% } %>
+  </div>
+  <div class="table-wrap">
+    <table class="table-stack">
+      <thead><tr><% report.columns.forEach(([, label]) => { %><th><%= label %></th><% }) %></tr></thead>
+      <tbody>
+        <% if (!report.rows.length) { %>
+          <tr><td class="empty row-empty" colspan="<%= report.columns.length %>">No hay resultados con esos filtros.</td></tr>
+        <% } %>
+        <% report.rows.forEach((row) => { %>
+          <tr>
+            <% report.columns.forEach(([key, label]) => { %>
+              <td data-label="<%= label %>">
+                <% if (key === 'estado' && statesLabels[row[key]]) { %>
+                  <span class="badge <%= ['disponible', 'vigente'].includes(row[key]) ? 'b-ok' : ['asignado', 'devuelta'].includes(row[key]) ? 'b-warn' : ['baja', 'rechazada'].includes(row[key]) ? 'b-bad' : 'b-info' %>"><%= statesLabels[row[key]] %></span>
+                <% } else if (key === 'porcentaje') { %><%= row[key] == null ? '0' : row[key] %>%
+                <% } else { %><%= fmtValue(row[key]) %><% } %>
+              </td>
+            <% }) %>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('../../partials/layout-end') %>

@@ -39,6 +39,10 @@
   });
   setExpanded();
 
+  if (window.location.pathname === '/reportes/imprimir') {
+    window.addEventListener('load', function () { window.print(); });
+  }
+
   // <form data-confirm="¿Seguro?"> pide confirmación antes de enviar
   document.querySelectorAll('form[data-confirm]').forEach(function (form) {
     form.addEventListener('submit', function (e) {
