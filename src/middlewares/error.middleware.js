@@ -13,7 +13,7 @@ function errorHandler(err, req, res, next) {
 
   if (err.code === 'EBADCSRFTOKEN') status = 403;
   if (!(err instanceof AppError) && status >= 500) {
-    console.error(err); // el detalle va al log, nunca al usuario
+    console.error(err);
     message = 'Ocurrió un error inesperado. Intenta de nuevo más tarde.';
   }
 

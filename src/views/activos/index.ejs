@@ -1,0 +1,50 @@
+<%- include('../partials/header', { title: 'Activos', user }) %>
+<div class="page-actions">
+  <p>Consulta el inventario y los niveles de stock.</p>
+  <% if (['admin', 'supervisor'].includes(user.rol)) { %>
+    <a class="button primary" href="/activos/nuevo">+ Nuevo activo</a>
+  <% } %>
+</div>
+<form class="filters card" method="get" action="/activos">
+  <label>Buscar
+    <input name="buscar" value="<%= filters.buscar || '' %>" placeholder="Código, nombre o modelo">
+  </label>
+  <label>Tipo
+    <select name="tipo">
+      <option value="">Todos</option>
+      <% categories.filter(category => ['refaccion', 'herramienta', 'equipo'].includes(category.tipo)).map(category => category.tipo).filter((type, index, list) => list.indexOf(type) === index).forEach(type => { %>
+        <option value="<%= type %>" <%= filters.tipo === type ? 'selected' : '' %>><%= type %></option>
+      <% }); %>
+    </select>
+  </label>
+  <label>Estado
+    <select name="estado">
+      <option value="">Todos</option>
+      <% [['disponible', 'Disponible'], ['asignado', 'Asignado'], ['mantenimiento', 'Mantenimiento']].forEach(([value, label]) => { %>
+        <option value="<%= value %>" <%= filters.estado === value ? 'selected' : '' %>><%= label %></option>
+      <% }); %>
+    </select>
+  </label>
+  <button class="button secondary" type="submit">Filtrar</button>
+</form>
+<div class="card table-wrap">
+  <table>
+    <thead><tr><th>Código</th><th>Activo</th><th>Tipo</th><th>Stock</th><th>Estado</th><th></th></tr></thead>
+    <tbody>
+      <% assets.forEach(asset => { %>
+        <tr>
+          <td><%= asset.codigo %></td><td><%= asset.nombre %></td><td><%= asset.tipo %></td>
+          <td>
+            <% if (asset.tipo === 'refaccion') { %>
+              <span class="<%= asset.stock <= asset.stock_minimo ? 'low-stock' : '' %>"><%= asset.stock %> / mín. <%= asset.stock_minimo %></span>
+            <% } else { %>—<% } %>
+          </td>
+          <td><span class="badge <%= asset.estado %>"><%= asset.estado %></span></td>
+          <td><a href="/activos/<%= asset.id %>">Ver detalle</a></td>
+        </tr>
+      <% }); %>
+      <% if (!assets.length) { %><tr><td colspan="6" class="empty">No hay activos que coincidan con el filtro.</td></tr><% } %>
+    </tbody>
+  </table>
+</div>
+<%- include('../partials/footer') %>

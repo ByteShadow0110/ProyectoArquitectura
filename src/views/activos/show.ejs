@@ -1,0 +1,40 @@
+<%- include('../partials/header', { title: asset.nombre, user }) %>
+<div class="page-actions">
+  <p><strong><%= asset.codigo %></strong> · <%= asset.categoria %> · <span class="badge <%= asset.estado %>"><%= asset.estado %></span></p>
+  <% if (['admin', 'supervisor'].includes(user.rol)) { %>
+    <div class="actions inline">
+      <a class="button secondary" href="/activos/<%= asset.id %>/editar">Editar</a>
+      <% if (asset.estado === 'disponible') { %>
+        <a class="button secondary" href="/asignaciones/nueva?activo_id=<%= asset.id %>">Asignar</a>
+        <form method="post" action="/activos/<%= asset.id %>/baja" onsubmit="return confirm('¿Dar de baja este activo?')">
+          <button class="button danger" type="submit">Dar de baja</button>
+        </form>
+      <% } %>
+    </div>
+  <% } %>
+</div>
+<div class="detail-grid">
+  <article class="card">
+    <h2>Datos del activo</h2>
+    <dl>
+      <dt>Tipo</dt><dd><%= asset.tipo %></dd>
+      <dt>Stock</dt><dd><%= asset.tipo === 'refaccion' ? `${asset.stock} (mínimo ${asset.stock_minimo})` : 'No aplica' %></dd>
+      <dt>Modelos compatibles</dt><dd><%= asset.modelos_compatibles || '—' %></dd>
+      <dt>Costo</dt><dd><%= asset.costo == null ? '—' : `$${asset.costo}` %></dd>
+    </dl>
+  </article>
+  <article class="card">
+    <h2>Bitácora de movimientos</h2>
+    <% if (movements.length) { %>
+      <ul class="timeline">
+        <% movements.forEach(movement => { %>
+          <li><strong><%= movement.tipo %></strong> · <%= movement.cantidad %>
+            <span><%= movement.nota || '' %></span>
+            <small><%= new Date(movement.creado_en).toLocaleString('es-MX') %> · <%= movement.usuario %></small>
+          </li>
+        <% }); %>
+      </ul>
+    <% } else { %><p class="empty">Aún no hay movimientos.</p><% } %>
+  </article>
+</div>
+<%- include('../partials/footer') %>

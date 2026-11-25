@@ -38,6 +38,11 @@ CREATE TABLE categorias (
   nombre VARCHAR(60) UNIQUE NOT NULL,           -- Pantallas, Baterías, Herramienta, Equipo...
   tipo VARCHAR(15) NOT NULL CHECK (tipo IN ('refaccion','herramienta','equipo'))
 );
+INSERT INTO categorias (nombre, tipo) VALUES
+  ('Refacción', 'refaccion'),
+  ('Herramienta', 'herramienta'),
+  ('Equipo', 'equipo')
+ON CONFLICT (nombre) DO NOTHING;
 
 CREATE TABLE activos (
   id SERIAL PRIMARY KEY,
@@ -67,6 +72,7 @@ CREATE TABLE solicitudes (
   creado_en TIMESTAMPTZ NOT NULL DEFAULT now(),
   resuelta_en TIMESTAMPTZ
 );
+ALTER TABLE solicitudes ADD COLUMN IF NOT EXISTS motivo_resolucion TEXT;
 
 CREATE TABLE asignaciones (
   id SERIAL PRIMARY KEY,
@@ -92,3 +98,6 @@ CREATE INDEX idx_personas_area ON personas(area_id);
 CREATE INDEX idx_activos_estado ON activos(estado);
 CREATE INDEX idx_activos_nombre ON activos(lower(nombre));
 CREATE INDEX idx_asignaciones_persona ON asignaciones(persona_id) WHERE fecha_devolucion IS NULL;
+CREATE UNIQUE INDEX idx_asignaciones_activo_activo
+  ON asignaciones(activo_id) WHERE fecha_devolucion IS NULL;
+CREATE INDEX idx_solicitudes_estado ON solicitudes(estado);

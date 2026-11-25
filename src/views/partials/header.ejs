@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> · RefaccionesMX</title>
+  <link rel="stylesheet" href="/css/modules.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="brand" href="/activos">Refacciones<span>MX</span></a>
+      <nav aria-label="Principal">
+        <a href="/activos">Activos</a>
+        <a href="/asignaciones">Asignaciones</a>
+        <a href="/solicitudes">Solicitudes</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">RefaccionesMX</p>
+          <h1><%= title %></h1>
+        </div>
+        <div class="user-info"><%= user.nombre || user.correo || 'Usuario' %> · <%= user.rol %></div>
+      </header>
+      <section class="content">
