@@ -160,3 +160,15 @@ td .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .auth-side .logo{font-size:20px}.auth-side .logo .icon{width:28px;height:28px}
   .auth-main{flex:1;align-items:start;padding:20px 16px}
 }
+
+/* Reportes (Sprint 3) */
+.inline-label{display:inline-flex;align-items:center;gap:6px;margin:0;color:var(--mute);font-size:13px}
+.inline-label input{width:auto}
+.bar{background:#ECEFF1;border-radius:99px;height:10px;min-width:120px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--primary)}
+@media print{
+  .sidebar,.topbar,.backdrop,.no-print,.alert{display:none !important}
+  .layout,.main{display:block}
+  .content{padding:0}
+  .card{box-shadow:none;border:0}
+}

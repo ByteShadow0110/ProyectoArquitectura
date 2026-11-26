@@ -1,19 +1,52 @@
 <%- include('../../partials/layout-start') %>
+<%
+  const REC = { pendiente: ['b-warn', 'Pendiente'], aprobada: ['b-ok', 'Aprobada'], rechazada: ['b-bad', 'Rechazada'] };
+%>
 <div class="grid g4">
-  <div class="card kpi"><span class="ico c1"><%- icon('people', 'lg') %></span><div><div class="n"><%= personasActivas %></div><div class="l">Personas activas</div></div></div>
-  <div class="card kpi"><span class="ico c2"><%- icon('build', 'lg') %></span><div><div class="n"><%= activosTotal %></div><div class="l">Activos vigentes</div></div></div>
-  <div class="card kpi"><span class="ico c3"><%- icon('assign', 'lg') %></span><div><div class="n"><%= solicitudesPendientes %></div><div class="l">Solicitudes pendientes</div></div></div>
-  <div class="card kpi"><span class="ico c4"><%- icon('error', 'lg') %></span><div><div class="n"><%= stockBajo %></div><div class="l">Refacciones con stock bajo</div></div></div>
+<% if (!basico) { %>
+  <div class="card kpi"><span class="ico c1"><%- icon('build', 'lg') %></span><div><div class="n"><%= kpis.stockTotal %></div><div class="l">Refacciones en stock</div></div></div>
+  <div class="card kpi"><span class="ico c4"><%- icon('error', 'lg') %></span><div><div class="n" style="<%= kpis.stockBajo ? 'color:var(--bad)' : '' %>"><%= kpis.stockBajo %></div><div class="l">Alertas de stock bajo</div></div></div>
+  <div class="card kpi"><span class="ico c2"><%- icon('people', 'lg') %></span><div><div class="n"><%= kpis.asignados %></div><div class="l">Activos asignados</div></div></div>
+  <div class="card kpi"><span class="ico c3"><%- icon('assign', 'lg') %></span><div><div class="n"><%= kpis.pendientes %></div><div class="l">Solicitudes pendientes</div></div></div>
+<% } else { %>
+  <div class="card kpi"><span class="ico c1"><%- icon('build', 'lg') %></span><div><div class="n"><%= kpis.disponibles %></div><div class="l">Activos disponibles</div></div></div>
+  <div class="card kpi"><span class="ico c2"><%- icon('people', 'lg') %></span><div><div class="n"><%= kpis.misAsignados %></div><div class="l">Activos a mi cargo</div></div></div>
+  <div class="card kpi"><span class="ico c3"><%- icon('assign', 'lg') %></span><div><div class="n"><%= kpis.misPendientes %></div><div class="l">Mis solicitudes pendientes</div></div></div>
+<% } %>
 </div>
+
 <div class="grid g2" style="margin-top:16px">
+  <% if (!basico) { %>
   <div class="card">
-    <h2>Bienvenido, <%= user.nombre %></h2>
-    <p>Consulta el inventario, asigna herramientas y gestiona solicitudes. Los reportes completos llegan en el Sprint 3.</p>
-    <div class="btn-row">
-      <a class="btn" href="/activos"><%- icon('build', 'sm') %>Ir a activos</a>
-      <a class="btn sec" href="/solicitudes"><%- icon('assign', 'sm') %>Solicitudes</a>
-      <a class="btn sec" href="/personas"><%- icon('people', 'sm') %>Personas</a>
-    </div>
+    <h2>Stock bajo</h2>
+    <% if (!bajos.length) { %><p class="hint">No hay refacciones por debajo del mínimo.</p><% } else { %>
+    <div class="table-wrap"><table class="table-stack">
+      <thead><tr><th>SKU</th><th>Refacción</th><th>Stock</th><th>Mín.</th></tr></thead>
+      <tbody>
+        <% bajos.forEach(b => { %>
+          <tr><td data-label="SKU"><%= b.codigo %></td><td data-label="Refacción"><a href="/activos/<%= b.id %>"><%= b.nombre %></a></td>
+            <td data-label="Stock"><span class="badge <%= b.stock < b.stock_minimo ? 'b-bad' : 'b-warn' %>"><%= b.stock %></span></td><td data-label="Mín."><%= b.stock_minimo %></td></tr>
+        <% }) %>
+      </tbody>
+    </table></div>
+    <% } %>
+    <p><a href="/reportes?tipo=stock-bajo">Ver reporte completo →</a></p>
+  </div>
+  <% } %>
+  <div class="card">
+    <h2><%= basico ? 'Mis solicitudes recientes' : 'Solicitudes recientes' %></h2>
+    <% if (!recientes.length) { %><p class="hint">Aún no hay solicitudes.</p><% } else { %>
+    <div class="table-wrap"><table class="table-stack">
+      <thead><tr><th>Solicitante</th><th>Activo</th><th>Estado</th></tr></thead>
+      <tbody>
+        <% recientes.forEach(r => { %>
+          <tr><td data-label="Solicitante"><%= r.solicitante %></td><td data-label="Activo"><%= r.activo %></td>
+            <td data-label="Estado"><span class="badge <%= REC[r.estado][0] %>"><%= REC[r.estado][1] %></span></td></tr>
+        <% }) %>
+      </tbody>
+    </table></div>
+    <% } %>
+    <p><a href="/solicitudes?estado=todas">Ver solicitudes →</a></p>
   </div>
   <% if (user.rol !== 'operativo') { %>
   <div class="card">
@@ -21,7 +54,16 @@
     <div class="btn-row">
       <a class="btn sec" href="/activos/nuevo"><%- icon('add', 'sm') %>Nuevo activo</a>
       <a class="btn sec" href="/personas/nueva"><%- icon('add', 'sm') %>Nueva persona</a>
+      <a class="btn" href="/reportes"><%- icon('report', 'sm') %>Generar reporte</a>
       <% if (user.rol === 'admin') { %><a class="btn sec" href="/usuarios/nuevo"><%- icon('add', 'sm') %>Nuevo usuario</a><% } %>
+    </div>
+  </div>
+  <% } else { %>
+  <div class="card">
+    <h2>Accesos rápidos</h2>
+    <div class="btn-row">
+      <a class="btn" href="/solicitudes/nueva"><%- icon('add', 'sm') %>Solicitar un activo</a>
+      <a class="btn sec" href="/activos"><%- icon('build', 'sm') %>Ver activos</a>
     </div>
   </div>
   <% } %>

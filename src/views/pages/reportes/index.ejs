@@ -1,0 +1,54 @@
+<%- include('../../partials/layout-start') %>
+<%
+  const f = report.filters;
+  const usaFechas = tipos[report.tipo].usaFechas;
+%>
+<div class="card no-print">
+  <h2>Generar reporte</h2>
+  <% if (errorMessage) { %><div class="alert error" role="alert"><%- icon('error') %><span><%= errorMessage %></span></div><% } %>
+  <form class="toolbar" method="get" action="/reportes">
+    <select name="tipo" aria-label="Tipo de reporte">
+      <% Object.keys(tipos).forEach(k => { %><option value="<%= k %>" <%= report.tipo === k ? 'selected' : '' %>><%= tipos[k].label %></option><% }) %>
+    </select>
+    <label class="inline-label">Desde <input type="date" name="desde" value="<%= errorMessage ? '' : f.desde %>" class="<%= errors.desde ? 'invalid' : '' %>"></label>
+    <label class="inline-label">Hasta <input type="date" name="hasta" value="<%= errorMessage ? '' : f.hasta %>" class="<%= errors.hasta ? 'invalid' : '' %>"></label>
+    <select name="persona" aria-label="Persona">
+      <option value="">Todas las personas</option>
+      <% personas.forEach(p => { %><option value="<%= p.id %>" <%= f.persona === p.id ? 'selected' : '' %>><%= p.nombre %> <%= p.apellidos %></option><% }) %>
+    </select>
+    <select name="mov" aria-label="Tipo de movimiento">
+      <option value="">Todos los movimientos</option>
+      <% movTipos.forEach(m => { %><option value="<%= m %>" <%= f.mov === m ? 'selected' : '' %>><%= movLabel[m] %></option><% }) %>
+    </select>
+    <button class="btn" type="submit"><%- icon('search', 'sm') %>Generar</button>
+  </form>
+  <p class="hint">Las fechas aplican a asignaciones y movimientos; la persona, solo a asignaciones; el tipo de movimiento, solo a movimientos.</p>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <div class="card-head">
+    <h2><%= report.label %></h2>
+    <div class="btn-row no-print" style="margin:0">
+      <a class="btn sec" href="/reportes/csv?<%= csvQuery %>"><%- icon('download', 'sm') %>CSV</a>
+      <button class="btn sec" type="button" data-print><%- icon('print', 'sm') %>Imprimir / PDF</button>
+    </div>
+  </div>
+  <% if (!report.rows.length) { %>
+    <p class="hint">No hay registros con esos filtros.</p>
+  <% } else { %>
+  <div class="table-wrap"><table class="table-stack">
+    <thead><tr><% report.columns.forEach(c => { %><th><%= c.label %></th><% }) %><% if (report.bar) { %><th class="no-print"></th><% } %></tr></thead>
+    <tbody>
+      <% report.rows.forEach(r => { %>
+        <tr>
+          <% report.columns.forEach(c => { %><td data-label="<%= c.label %>"><%= r[c.key] === '' || r[c.key] == null ? '—' : r[c.key] %></td><% }) %>
+          <% if (report.bar) { %><td class="no-print"><div class="bar"><i style="width:<%= r.porcentaje %>%"></i></div></td><% } %>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table></div>
+  <p class="hint"><%= report.bar ? report.total + ' activos en total.' : report.rows.length + ' registro' + (report.rows.length === 1 ? '' : 's') + '.' %>
+    <% if (report.truncated) { %> Se muestran los primeros <%= report.rows.length %>; el CSV incluye hasta 10,000.<% } %></p>
+  <% } %>
+</div>
+<%- include('../../partials/layout-end') %>
