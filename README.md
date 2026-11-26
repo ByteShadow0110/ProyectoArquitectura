@@ -7,7 +7,8 @@ Actividad Integradora – Arquitectura de Software 5B · Node.js (Express) · MV
 - **Sprint 0:** requisitos, arquitectura y maqueta UI/UX (`prototype/index.html`).
 - **Sprint 1:** interfaz base, autenticación y roles, módulo Personas. ✅
 - **Sprint 2:** módulo Activos (T7), asignaciones y solicitudes (T8), vistas y navegación de los módulos (T9). ✅
-- Siguiente: Sprint 3 (dashboard completo, reportes y pruebas).
+- **Sprint 3:** dashboard con indicadores reales, reportes con exportación (T10) y pruebas/correcciones (T11). ✅
+- Siguiente: Sprint 4 (aceptación, despliegue y capacitación).
 
 ## Estructura
 ```
@@ -62,6 +63,11 @@ Usuarios creados por `db/seeds/01_seed.sql` (solo desarrollo; la contraseña de 
 | `/solicitudes` | operativo ve las suyas; admin/supervisor todas | Solicitar un activo; aprobar (crea la asignación) o rechazar con motivo obligatorio |
 
 Las asignaciones, aprobaciones y movimientos de stock se ejecutan en transacción con bloqueo de fila. El esquema (`db/schema.sql`) añade `solicitudes.motivo_resolucion`; para aplicarlo reinicia la BD con `docker compose down -v && docker compose up -d`.
+
+## Dashboard y reportes (Sprint 3)
+- **Dashboard** (`/dashboard`): admin y supervisor ven refacciones en stock, alertas de stock bajo, activos asignados y solicitudes pendientes, con la lista de stock bajo y las solicitudes recientes. El operativo ve una versión básica con solo lo suyo.
+- **Reportes** (`/reportes`, solo admin y supervisor): activos por estado, asignaciones por persona, movimientos por fecha y stock bajo, con filtros por fecha, persona y tipo de movimiento. El supervisor solo ve personas de su área.
+- **Exportar:** CSV (`/reportes/csv`, abre bien en Excel y neutraliza fórmulas) y PDF con el botón *Imprimir / PDF* del navegador.
 
 ## Seguridad aplicada
 Contraseñas con bcrypt, sesiones en PostgreSQL con cookie `httpOnly`, token CSRF en formularios, consultas parametrizadas, escape de salida en EJS, cabeceras con Helmet (CSP), límite de intentos de inicio de sesión y autorización por rol en el servidor.

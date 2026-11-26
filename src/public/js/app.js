@@ -45,4 +45,9 @@
       if (!window.confirm(form.getAttribute('data-confirm'))) e.preventDefault();
     });
   });
+
+  // <button data-print> abre el diálogo de impresión (permite guardar como PDF)
+  document.querySelectorAll('[data-print]').forEach(function (b) {
+    b.addEventListener('click', function () { window.print(); });
+  });
 })();
